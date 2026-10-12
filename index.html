@@ -337,6 +337,8 @@ body.auth-checking #loginGate{display:none!important}
 .gatefooter button{background:transparent;border:0;color:var(--accent);padding:5px}
 .gate-theme{position:fixed;right:16px;top:16px}
 
+/* Login ekranındayken alt navigasyonu gizle */
+body:not(.is-approved) .bottomnav{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
