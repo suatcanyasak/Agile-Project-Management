@@ -1523,7 +1523,7 @@ async function activateApprovedUser(user,forcePersonal){
 async function setupSb(){
   try{
     if(!window.supabase?.createClient)throw Error('Supabase kitaplığı yüklenemedi.');
-    sb=window.supabase.createClient(DEFAULT_SB.url,DEFAULT_SB.key,{auth:{persistSession:true,storage:window.sessionStorage,storageKey:'work-tracker-auth-session',autoRefreshToken:true,detectSessionInUrl:true}});
+    sb=window.supabase.createClient(DEFAULT_SB.url,DEFAULT_SB.key,{auth:{persistSession:true,storage:window.localStorage,storageKey:'work-tracker-auth-session',autoRefreshToken:true,detectSessionInUrl:true}});
     setAuthStatus('Supabase bağlantısı hazır.');return true;
   }catch(e){gateMessage('Supabase bağlantı hatası: '+e.message);return false}
 }
@@ -1556,6 +1556,7 @@ async function authAction(kind){
       else gateMessage('Kayıt talebi bulunamadı.');
       return;
     }
+    localStorage.setItem(SESSION_STARTED_KEY,String(Date.now()));
     await activateApprovedUser(user,true);notify('Giriş yapıldı.');
   }catch(e){gateMessage('İşlem başarısız: '+(e.message||'Bilinmeyen hata'))}
   finally{$('gateSubmit').disabled=false;$('gateSubmit').textContent=gateMode==='signup'?'Kayıt talebi gönder':'Giriş yap'}
@@ -1688,6 +1689,7 @@ async function pushRemote(){
 async function signOut(){
   logSession('Oturum kapatıldı');
   if(sb)await sb.auth.signOut().catch(()=>{});
+  localStorage.removeItem(SESSION_STARTED_KEY);
   sbUser=null;approvedUserId=null;myRole='user';setApprovedUI(null);setGateMode('signin');
   gateMessage('Güvenli çıkış yapıldı.');render();
 }
@@ -1906,9 +1908,9 @@ function bind(){
 
 async function enforceSessionLimit(){
   if(!sb)return true;
-  const started=Number(sessionStorage.getItem(SESSION_STARTED_KEY)||0);
+  const started=Number(localStorage.getItem(SESSION_STARTED_KEY)||0);
   if(started&&Date.now()-started>=MAX_SESSION_MS){
-    await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);
+    await sb.auth.signOut().catch(()=>{});localStorage.removeItem(SESSION_STARTED_KEY);
     sbUser=null;setApprovedUI(null);setGateMode('signin');gateMessage('13 saatlik oturum süresi doldu.');return false;
   }
   return true;
@@ -1932,25 +1934,25 @@ async function init(){
         const {data:sessionData,error:sessionError}=await sb.auth.getSession();
         if(sessionError)throw sessionError;
         if(sessionData.session?.user){
-          if(!sessionStorage.getItem(SESSION_STARTED_KEY))sessionStorage.setItem(SESSION_STARTED_KEY,String(Date.now()));
+          if(!localStorage.getItem(SESSION_STARTED_KEY))localStorage.setItem(SESSION_STARTED_KEY,String(Date.now()));
           if(await enforceSessionLimit()){
             const user=sessionData.session.user;
             const check=await checkApproval(user);
             if(check.ok){await activateApprovedUser(user)}
-            else{setApprovedUI(null);await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);gateMessage(check.status==='pending'?'Kayıt talebin onay bekliyor.':'Erişim izni yok.')}
+            else{setApprovedUI(null);await sb.auth.signOut().catch(()=>{});localStorage.removeItem(SESSION_STARTED_KEY);gateMessage(check.status==='pending'?'Kayıt talebin onay bekliyor.':'Erişim izni yok.')}
           }
         }
       }catch(e){gateMessage('Oturum kontrol edilemedi: '+e.message)}
       sb.auth.onAuthStateChange((event,session)=>{
-        if(event==='SIGNED_OUT'){sessionStorage.removeItem(SESSION_STARTED_KEY);sbUser=null;approvedUserId=null;setApprovedUI(null)}
-        else if(event==='SIGNED_IN'&&session){if(!sessionStorage.getItem(SESSION_STARTED_KEY))sessionStorage.setItem(SESSION_STARTED_KEY,String(Date.now()))}
+        if(event==='SIGNED_OUT'){localStorage.removeItem(SESSION_STARTED_KEY);sbUser=null;approvedUserId=null;setApprovedUI(null)}
+        else if(event==='SIGNED_IN'&&session){if(!localStorage.getItem(SESSION_STARTED_KEY))localStorage.setItem(SESSION_STARTED_KEY,String(Date.now()))}
         else if(session?.user&&session.user.id!==approvedUserId){
           setTimeout(async()=>{
             try{
               if(!(await enforceSessionLimit()))return;
               const check=await checkApproval(session.user);
               if(check.ok){await activateApprovedUser(session.user)}
-              else{sbUser=null;setApprovedUI(null);await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);gateMessage('Bu hesap için erişim yok.')}
+              else{sbUser=null;setApprovedUI(null);await sb.auth.signOut().catch(()=>{});localStorage.removeItem(SESSION_STARTED_KEY);gateMessage('Bu hesap için erişim yok.')}
             }catch(e){setApprovedUI(null);gateMessage('Erişim kontrolü başarısız: '+e.message)}
           },0);
         }
