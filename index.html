@@ -1,0 +1,1884 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agile Project Management</title>
+<script>
+try{
+  var __p=JSON.parse(localStorage.getItem('work-tracker-prefs')||'{}');
+  if(__p.theme)document.documentElement.dataset.theme=__p.theme;
+  if(__p.density==='compact')document.documentElement.classList.add('density-compact');
+}catch(e){}
+</script>
+<style>
+
+:root{--bg:#f4f6fb;--panel:#fff;--text:#1b2434;--muted:#69758a;--line:#e4e8f0;--accent:#5368e8;--accent2:#e9edff;--good:#16835f;--warn:#b86b10;--bad:#c43e4d;--shadow:0 8px 28px #202d5010}
+[data-theme="dark"]{--bg:#111522;--panel:#1a2030;--text:#edf1fa;--muted:#a0abc0;--line:#30394d;--accent:#8290ff;--accent2:#2b335b;--good:#5dd5a7;--warn:#ffc36c;--bad:#ff7c89;--shadow:0 8px 28px #0003}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 12px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:white;border-color:var(--accent)}
+button.danger{color:var(--bad)}
+button.ghost{background:transparent;border:0;color:var(--accent);padding:4px 6px}
+input,select,textarea{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 11px;border-radius:9px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input:disabled{opacity:.6;cursor:not-allowed}
+label{display:block;color:var(--muted);font-size:12px;margin:0 0 5px}
+.app{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:22px 15px;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;gap:10px;align-items:center;padding:0 7px;font-size:17px;font-weight:800}
+.logo{background:var(--accent);color:white;border-radius:12px;width:35px;height:35px;display:grid;place-items:center;font-size:18px}
+.nav{display:grid;gap:5px}
+.nav button{border:0;text-align:left;background:transparent;color:var(--muted);display:flex;gap:10px;align-items:center;position:relative}
+.nav button.active{background:var(--accent2);color:var(--accent);font-weight:700}
+.nav .nav-badge{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--bad);color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;font-weight:800;min-width:18px;text-align:center}
+.sidebottom{margin-top:auto;display:grid;gap:8px}
+.main{min-width:0;padding:24px clamp(14px,3vw,38px);max-width:1600px;width:100%;margin:auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}
+.eyebrow{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.top h1{margin:3px 0;font-size:clamp(23px,3vw,30px);letter-spacing:-.04em}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:20px}
+.stat,.panel,.task,.daycell{background:var(--panel);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}
+.stat{padding:16px}
+.stat .num{font-size:27px;font-weight:800;letter-spacing:-.04em;margin:5px 0}
+.muted{color:var(--muted)}
+.statlabel{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,.8fr);gap:16px;align-items:start}
+.panel{padding:18px;margin-bottom:16px}
+.panelhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.panel h2{font-size:16px;margin:0}
+.filters{display:grid;grid-template-columns:minmax(130px,1fr) 150px 145px;gap:8px;margin-bottom:13px}
+.tasklist{display:grid;gap:9px}
+.task{box-shadow:none;padding:13px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:11px;align-items:start;position:relative}
+.task[data-prio="high"]{border-left:3px solid var(--bad)}
+.task[data-prio="medium"]{border-left:3px solid var(--warn)}
+.task[data-prio="low"]{border-left:3px solid var(--good)}
+.task.done{opacity:.72}
+.task.done .tasktitle{text-decoration:line-through}
+.check{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)}
+.tasktitle{font-weight:750;overflow-wrap:anywhere}
+.taskmeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;color:var(--muted);font-size:11px}
+.pill{border-radius:99px;padding:3px 8px;background:var(--accent2);color:var(--accent);font-size:11px;font-weight:700}
+.pill.red{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)}
+.pill.orange{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.pill.green{background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good)}
+.badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.badge{font-size:10px;padding:2px 6px;border-radius:5px;background:var(--accent2);color:var(--accent);font-weight:600}
+.badge.red{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.badge.orange{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.badge.green{background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good)}
+.taskbuttons{display:flex;gap:5px;flex-wrap:wrap}
+.taskbuttons button{padding:6px 8px;font-size:12px}
+.empty{padding:32px 15px;text-align:center;color:var(--muted)}
+.quick{display:grid;gap:9px}
+.quickrow{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:9px 0}
+.quickrow:last-child{border:0}
+.mini{font-size:12px;color:var(--muted)}
+.barrow{display:grid;grid-template-columns:95px minmax(0,1fr) 38px;gap:8px;align-items:center;margin:11px 0;font-size:12px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.view{display:none}
+.view.active{display:block}
+.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.weekday{text-align:center;font-size:11px;color:var(--muted);padding:5px}
+.daycell{min-height:100px;padding:8px;box-shadow:none}
+.daynum{font-size:12px;font-weight:800;margin-bottom:5px}
+.daycell.today{border-color:var(--accent)}
+.calitem{font-size:10px;padding:4px;margin-top:4px;border-radius:5px;background:var(--accent2);color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calnav{display:flex;align-items:center;gap:8px}
+.calnav strong{min-width:130px;text-align:center}
+.reportgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.reportbox{border:1px solid var(--line);border-radius:12px;padding:14px}
+.reportbox strong{display:block;font-size:23px;margin-top:7px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field.full{grid-column:1/-1}
+.modalback{position:fixed;inset:0;background:#080c19a6;display:none;align-items:center;justify-content:center;padding:15px;z-index:10}
+.modalback.open{display:flex}
+.modal{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;width:min(740px,100%);max-height:92vh;overflow:auto;padding:21px}
+.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+.modalhead h2{margin:0}
+.modalfoot{display:flex;justify-content:space-between;gap:8px;margin-top:18px;flex-wrap:wrap}
+.subtasks{display:grid;gap:7px}
+.subrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:8px;align-items:center}
+.subrow select{width:auto;padding:6px 8px;font-size:12px}
+.subrow input[type=date]{width:auto;padding:6px 8px;font-size:12px}
+.cardsubs{display:grid;gap:5px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.cardsubrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:6px;align-items:center;font-size:12px}
+.cardsubrow select{width:auto;padding:3px 7px;font-size:11px;border-radius:7px;min-width:118px}
+.cardsubtitle{overflow-wrap:anywhere}
+.cardsubtitle.done{text-decoration:line-through;color:var(--muted)}
+.submove{background:transparent;border:0;color:var(--muted);padding:1px 4px;font-size:11px;line-height:1}
+.subquick{display:flex;gap:6px;margin-top:6px}
+.subquick input{padding:5px 8px;font-size:12px}
+.subquick button{padding:5px 9px;font-size:12px}
+.cardissues{display:grid;gap:5px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.cardissue{display:flex;gap:7px;align-items:flex-start;font-size:12px;color:var(--muted);margin:0;cursor:pointer}
+.cardissue input{width:auto;margin-top:2px;accent-color:var(--accent)}
+.cardissue .iprio{width:8px;height:8px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+.cardissue .iprio.high{background:var(--bad)}
+.cardissue .iprio.medium{background:var(--warn)}
+.cardissue .iprio.low{background:var(--good)}
+.cardissue span{overflow-wrap:anywhere}
+.cardissue.resolved span{text-decoration:line-through;opacity:.6}
+.issuebox{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}
+.issuegrid{display:grid;grid-template-columns:140px 130px 130px minmax(0,1fr) auto;gap:7px;align-items:start}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:10px;margin:2px}
+.notice{background:var(--accent2);color:var(--text);padding:12px;border-radius:10px;font-size:12px;overflow-wrap:anywhere}
+.notice.warn{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.checkline{display:flex;gap:8px;align-items:center}
+.checkline input{width:auto}
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow-x:auto;align-items:start}
+.kancol{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:10px;min-height:220px}
+.kanhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:800}
+.kanitem{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px;margin:8px 0;cursor:pointer}
+.kanitem[draggable=true]{cursor:grab}
+.bulkbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px;background:var(--accent2);border-radius:10px;margin:10px 0}
+.taskselect{width:17px;height:17px}
+.reportfilters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--text);color:var(--panel);padding:12px 16px;border-radius:11px;box-shadow:var(--shadow);display:none;z-index:20}
+.toast.show{display:block}
+
+html.density-compact .task{padding:8px;gap:8px}
+html.density-compact .taskmeta{margin-top:4px;font-size:10px}
+html.density-compact .cardsubs,html.density-compact .cardissues{margin-top:6px;padding-top:6px}
+html.density-compact .panel{padding:12px}
+html.density-compact .tasktitle{font-size:13px}
+
+.bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);z-index:8;padding:6px;justify-content:space-around}
+.bottomnav button{background:transparent;border:0;color:var(--muted);font-size:10px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;position:relative}
+.bottomnav button.active{color:var(--accent)}
+.bottomnav .nav-badge{position:absolute;top:0;right:2px;background:var(--bad);color:#fff;font-size:9px;padding:0 5px;border-radius:99px;font-weight:800;min-width:16px;text-align:center}
+
+.ganttwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;padding:10px}
+.ganttgrid{display:grid;grid-auto-rows:auto;min-width:max-content;gap:2px;font-size:11px}
+.gantthead{padding:5px;text-align:center;color:var(--muted);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.ganttname{padding:7px 6px;border-bottom:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+.ganttcell{border-bottom:1px solid var(--line);min-height:24px}
+.ganttbar{margin:5px 0;height:14px;border-radius:7px;background:var(--accent)}
+.ganttbar.done{background:var(--good)}
+.ganttbar.late{background:var(--bad)}
+
+.depwrap{position:relative;min-height:420px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.depnode{position:absolute;padding:8px 11px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:12px;max-width:180px;box-shadow:var(--shadow);cursor:pointer}
+.depnode.hl{border-color:var(--accent);background:var(--accent2)}
+.depsvg{position:absolute;inset:0;pointer-events:none}
+
+.focuswrap{max-width:720px;margin:0 auto}
+.focustimer{font-size:52px;font-weight:800;letter-spacing:-.04em;text-align:center;margin:16px 0;font-variant-numeric:tabular-nums}
+
+.comments{display:grid;gap:8px;margin-top:10px}
+.comment{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px;font-size:12px}
+.comment .cmeta{color:var(--muted);font-size:10px;margin-bottom:4px}
+.commentbox{display:flex;gap:6px;margin-top:8px}
+
+.files{display:grid;gap:5px;margin-top:8px}
+.filerow{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;padding:7px 9px;background:var(--bg);border-radius:8px}
+
+.sesslog,.archlist,.rolelist{display:grid;gap:0}
+.sessrow,.archrow,.rolerow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rolerow{grid-template-columns:minmax(0,1fr) 140px auto}
+.rolerow select{padding:6px 8px;font-size:12px}
+
+.ws-switcher{position:relative}
+.ws-btn{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:10px 12px;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.ws-btn:hover{border-color:var(--accent)}
+.ws-label b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+.ws-label .mini{display:block}
+.ws-arrow{color:var(--muted);font-size:10px}
+.ws-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:30;padding:6px;min-width:240px;max-height:320px;overflow:auto}
+.ws-item{display:flex;justify-content:space-between;align-items:center;width:100%;padding:9px 10px;border:0;background:transparent;border-radius:8px;text-align:left;cursor:pointer;color:var(--text)}
+.ws-item:hover{background:var(--accent2)}
+.ws-item.active{background:var(--accent2);font-weight:700;color:var(--accent)}
+.ws-item .ws-role{font-size:10px;color:var(--muted);font-weight:normal}
+.ws-new{margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+.ws-badge{font-size:9px;padding:1px 5px;border-radius:4px;background:var(--accent2);color:var(--accent);font-weight:700;margin-left:4px}
+.ws-badge.personal{background:color-mix(in srgb,var(--good) 14%,transparent);color:var(--good)}
+
+.invrow{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--bg)}
+.invrow .inv-info b{display:block;font-size:13px;margin-bottom:3px}
+.invrow .inv-info .mini{font-size:11px}
+.invrow .inv-actions{display:flex;gap:6px}
+
+.modalback.forced .modal{width:min(520px,100%)}
+.modalback.forced .modalhead button{display:none}
+
+@media print{
+  .side,.top,.actions,.bottomnav,.toast,.modalback,#view-dashboard,#view-tasks,#view-kanban,#view-calendar,#view-templates,#view-history,#view-settings,#view-focus,#view-timeline,#view-archive,#view-depgraph{display:none!important}
+  #view-reports{display:block!important}
+  .main{padding:0}
+  .panel{box-shadow:none;border:0;margin:0}
+  .reportgrid{grid-template-columns:repeat(3,1fr)}
+}
+
+@media(max-width:1100px){.kanban{grid-template-columns:repeat(4,minmax(210px,1fr))}}
+@media(max-width:950px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .main{padding-top:17px;padding-bottom:78px}
+  .bottomnav{display:flex}
+  .layout{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .top{align-items:flex-start;flex-direction:column}
+  .actions{width:100%}
+  .actions button{flex:1}
+  .calendar{gap:3px}
+  .daycell{min-height:75px;padding:4px}
+  .calitem{font-size:9px;padding:3px}
+}
+@media(max-width:560px){
+  .filters{grid-template-columns:1fr 1fr}
+  .filters input{grid-column:1/-1}
+  .task{grid-template-columns:auto auto minmax(0,1fr)}
+  .taskbuttons{grid-column:3;flex-wrap:wrap}
+  .formgrid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .reportgrid{grid-template-columns:1fr 1fr}
+  .stat{padding:12px}
+  .stat .num{font-size:23px}
+  .panel{padding:13px}
+  .weekday{font-size:9px}
+  .daycell{min-height:62px}
+  .daynum{font-size:10px}
+  .calitem{font-size:8px}
+  .calendar{gap:2px}
+  .issuegrid{grid-template-columns:1fr}
+  .reportfilters{grid-template-columns:1fr}
+}
+
+#app{display:none!important}
+body.is-approved #app{display:grid!important}
+#authLoading{display:none}
+body.auth-checking #authLoading{display:flex;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:24px;color:var(--muted);background:var(--bg)}
+body.auth-checking #loginGate{display:none!important}
+.auth-spinner{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:authspin .8s linear infinite}
+@keyframes authspin{to{transform:rotate(360deg)}}
+#loginGate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(ellipse at top left,color-mix(in srgb,var(--accent) 15%,var(--bg)),var(--bg) 60%)}
+body.is-approved #loginGate{display:none}
+body.auth-checking #loginGate{display:none!important}
+.gatecard{width:min(460px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:clamp(22px,5vw,36px);box-shadow:var(--shadow)}
+.gatebrand{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.gatebrand .logo{width:44px;height:44px;font-size:22px}
+.gatebrand h1{font-size:22px;margin:0}
+.gatebrand p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.gatefields{display:grid;gap:13px;margin:20px 0}
+.gateactions{display:grid;gap:9px}
+.gateactions button{width:100%;padding:12px}
+.gatehint{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6}
+.gate-status{display:none;margin-top:14px;padding:12px;border-radius:10px;background:var(--accent2);font-size:13px;overflow-wrap:anywhere}
+.gate-status.show{display:block}
+.gatefooter{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px}
+.gatefooter button{background:transparent;border:0;color:var(--accent);padding:5px}
+.gate-theme{position:fixed;right:16px;top:16px}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-checking">
+<div id="authLoading" role="status" aria-live="polite"><div class="auth-spinner"></div><strong>Oturum kontrol ediliyor…</strong><span class="small">Lütfen bekleyin.</span></div>
+<div id="loginGate">
+ <button class="gate-theme" id="gateTheme">◐ Tema</button>
+ <section class="gatecard">
+  <div class="gatebrand"><div class="logo">✓</div><div><h1>Agile Project Management</h1><p>Güvenli hesap girişi</p></div></div>
+  <h2 id="gateHeading" style="margin:0;font-size:19px">Hesabına giriş yap</h2>
+  <p class="muted" id="gateDescription" style="margin:7px 0 0">Devam etmek için onaylı hesabınla giriş yap.</p>
+  <form id="gateForm" class="gatefields">
+   <div><label for="gateEmail">E-posta adresi</label><input id="gateEmail" type="email" autocomplete="username" placeholder="ornek@eposta.com" required></div>
+   <div><label for="gatePassword">Şifre</label><input id="gatePassword" type="password" autocomplete="current-password" minlength="6" placeholder="Şifren" required></div>
+   <div class="gateactions">
+     <button class="primary" id="gateSubmit" type="submit">Giriş yap</button>
+     <button id="gateRegister" type="button">Yeni hesap için kayıt talebi oluştur</button>
+     <button id="gateForgot" type="button" class="ghost" style="justify-self:center">Şifremi unuttum</button>
+   </div>
+  </form>
+  <div id="gateStatus" class="gate-status" role="status" aria-live="polite"></div>
+  <p class="gatehint">Kayıt talepleri Supabase üzerinden yönetici onayı bekler. Onay verilmeden uygulama ve görev verileri açılamaz.</p>
+  <div class="gatefooter"><span class="mini">Agile Project Management · Güvenli erişim</span><button id="gateMode" type="button">Kayıt talebine geç</button></div>
+ </section>
+</div>
+
+<div class="app" id="app" data-theme="light">
+<aside class="side">
+ <div class="brand"><div class="logo">✓</div><span data-i18n="app_name">Agile Project Management</span></div>
+
+ <div class="ws-switcher">
+   <button id="wsSwitcherBtn" class="ws-btn">
+     <span class="ws-label"><b id="wsCurrentName">—</b><span class="mini" id="wsCurrentType"></span></span>
+     <span class="ws-arrow">▾</span>
+   </button>
+   <div id="wsMenu" class="ws-menu" style="display:none"></div>
+ </div>
+
+ <nav class="nav" id="nav">
+  <button class="active" data-view="dashboard">◫ <span data-i18n="nav_dash">Genel Bakış</span></button>
+  <button data-view="focus">◎ <span data-i18n="nav_focus">Odak Modu</span></button>
+  <button data-view="tasks">☷ <span data-i18n="nav_tasks">Görevler</span></button>
+  <button data-view="kanban">▦ <span data-i18n="nav_kanban">Kanban</span></button>
+  <button data-view="calendar">▦ <span data-i18n="nav_cal">Takvim</span></button>
+  <button data-view="timeline">≡ <span data-i18n="nav_time">Zaman Çizelgesi</span></button>
+  <button data-view="depgraph">⇄ <span data-i18n="nav_dep">Bağımlılık</span></button>
+  <button data-view="reports">▤ <span data-i18n="nav_rep">Raporlar</span></button>
+  <button data-view="templates">▧ <span data-i18n="nav_tpl">Şablonlar</span></button>
+  <button data-view="archive">▣ <span data-i18n="nav_arch">Arşiv</span></button>
+  <button data-view="history">↺ <span data-i18n="nav_hist">Geçmiş</span></button>
+  <button data-view="settings">⚙ <span data-i18n="nav_set">Ayarlar</span><span class="nav-badge" id="settingsBadge" style="display:none"></span></button>
+ </nav>
+ <div class="sidebottom">
+  <div class="notice" id="syncBadge">● <span data-i18n="sync_local">Bu cihazda kayıt açık</span></div>
+  <button id="themeBtn">◐ <span data-i18n="theme">Tema değiştir</span></button>
+  <button id="densityBtn">▤ <span data-i18n="density">Yoğunluk</span></button>
+  <button id="langBtn">🌐 TR/EN</button>
+  <button id="exportBtn">⇩ <span data-i18n="csv">CSV dışa aktar</span></button>
+ </div>
+</aside>
+
+<main class="main">
+ <header class="top">
+  <div>
+   <div class="eyebrow" id="todayLabel">İŞ GÜNÜNÜ YÖNET</div>
+   <h1 id="pageTitle">Genel Bakış</h1>
+   <div class="muted" id="subtitle">Nerede kaldığını bil. Bir sonraki adımı kaçırma.</div>
+  </div>
+  <div class="actions">
+   <button id="themeBtn2">◐ Tema</button>
+   <button class="primary" id="newTaskBtn">＋ <span data-i18n="new_task">Yeni görev</span></button>
+  </div>
+ </header>
+
+ <section class="view active" id="view-dashboard">
+  <div class="stats">
+   <div class="stat"><div class="statlabel">Açık görevler <span>◷</span></div><div class="num" id="statOpen">0</div><div class="mini">Devam eden ve bekleyen</div></div>
+   <div class="stat"><div class="statlabel">Bugün tamamlanan <span>✓</span></div><div class="num" id="statDone">0</div><div class="mini">Bugün bitirdiğin görevler</div></div>
+   <div class="stat"><div class="statlabel">Geciken görevler <span>!</span></div><div class="num" id="statLate">0</div><div class="mini">Son tarihi geçmiş işler</div></div>
+   <div class="stat"><div class="statlabel">Tamamlanma oranı <span>↗</span></div><div class="num" id="statProgress">0%</div><div class="mini">Tamamlanan görevlerin oranı</div></div>
+  </div>
+  <div class="layout">
+   <div>
+    <div class="panel"><div class="panelhead"><h2>Öncelikli işler</h2><button data-goto="tasks">Tüm görevler →</button></div><div id="priorityList" class="tasklist"></div></div>
+    <div class="panel">
+     <div class="panelhead"><h2>Bugünün iş günlüğü</h2><span class="mini" id="todayLogCount">0 kayıt</span></div>
+     <div id="todayLog" class="quick"></div>
+     <div style="margin-top:12px"><label for="dailyNote">Gün sonu notu / yarına aktarılacaklar</label><textarea id="dailyNote" rows="3"></textarea><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="primary" id="saveDailyNote">Notu kaydet</button></div></div>
+    </div>
+   </div>
+   <div>
+    <div class="panel"><div class="panelhead"><h2>Hızlı durum</h2></div><div id="statusBars"></div></div>
+    <div class="panel"><div class="panelhead"><h2>Yaklaşan tarihler</h2></div><div id="upcomingList" class="quick"></div></div>
+    <div class="panel"><div class="panelhead"><h2>Aktif problemler</h2><span class="pill red" id="activeIssueCount">0</span></div><div id="activeIssues" class="quick"></div></div>
+   </div>
+  </div>
+ </section>
+
+ <section class="view" id="view-focus">
+  <div class="focuswrap">
+   <div class="panel">
+    <div class="panelhead"><h2>Bugün Odak Modu</h2><span class="mini" id="focusCount">0 görev</span></div>
+    <div class="mini">Bugün son tarihi olan veya devam eden görevler. Tek tek bitir.</div>
+    <div id="focusTask" style="margin-top:14px"></div>
+    <div id="focusNext" class="mini" style="margin-top:8px"></div>
+    <div class="actions" style="justify-content:center;margin-top:12px"><button id="focusNextBtn">Sıradaki →</button></div>
+   </div>
+   <div class="panel">
+    <h2>Pomodoro</h2>
+    <div class="focustimer" id="pomoTime">25:00</div>
+    <div class="actions" style="justify-content:center">
+     <button class="primary" id="pomoStart">Başlat</button>
+     <button id="pomoPause">Duraklat</button>
+     <button id="pomoReset">Sıfırla</button>
+    </div>
+    <div class="mini" style="text-align:center;margin-top:8px" id="pomoInfo">Çalışma: 25dk · Mola: 5dk</div>
+   </div>
+  </div>
+ </section>
+
+ <section class="view" id="view-tasks">
+  <div class="panel">
+   <div class="panelhead"><h2>Görev listesi</h2><button class="primary" id="newTaskBtn2">＋ Görev ekle</button></div>
+   <div class="filters">
+    <input id="searchTasks" placeholder="Görev ara…">
+    <select id="statusFilter"><option value="">Tüm durumlar</option><option value="todo">Yapılacak</option><option value="doing">Devam ediyor</option><option value="blocked">Engellendi</option><option value="done">Tamamlandı</option></select>
+    <select id="sortTasks"><option value="priority">Öncelik sırası</option><option value="due">Son tarih</option><option value="created">En yeni</option><option value="assignee">Atanan kişi</option></select>
+   </div>
+   <div class="filters" style="grid-template-columns:1fr 1fr 1fr">
+    <select id="categoryFilter"><option value="">Tüm kategoriler</option></select>
+    <select id="assigneeFilter"><option value="">Tüm kişiler</option></select>
+    <select id="lateFilter"><option value="">Tüm tarihler</option><option value="late">Sadece gecikenler</option><option value="today">Bugün bitmesi gerekenler</option><option value="nodate">Tarihsiz görevler</option></select>
+   </div>
+   <div class="bulkbar">
+    <span class="mini" id="selectedCount">0 görev seçildi</span>
+    <button id="bulkDone">Tamamlandı işaretle</button>
+    <button id="bulkDoing">Devam ediyor</button>
+    <button id="bulkArchive">Arşivle</button>
+    <button id="bulkDelete" class="danger">Çöp kutusuna taşı</button>
+    <button id="bulkClear" class="ghost">Temizle</button>
+   </div>
+   <div id="allTasks" class="tasklist"></div>
+  </div>
+ </section>
+
+ <section class="view" id="view-kanban">
+  <div class="panel"><div class="panelhead"><h2>Kanban panosu</h2><span class="mini">Kartları sürükleyerek durum değiştir</span></div><div class="kanban" id="kanbanBoard"></div></div>
+ </section>
+
+ <section class="view" id="view-calendar">
+  <div class="panel">
+   <div class="panelhead"><h2>Görev takvimi</h2><div class="calnav"><button id="prevMonth">‹</button><strong id="monthName"></strong><button id="nextMonth">›</button></div></div>
+   <div class="calendar" id="calendarGrid"></div>
+   <div class="mini" style="margin-top:12px">Bir tarihe görev eklemek için ilgili günün kutusuna tıkla.</div>
+  </div>
+ </section>
+
+ <section class="view" id="view-timeline">
+  <div class="panel">
+   <div class="panelhead"><h2>Zaman Çizelgesi</h2>
+    <div class="actions"><label class="checkline" style="margin:0"><input type="checkbox" id="ganttShowDone" checked> Tamamlananları göster</label></div>
+   </div>
+   <div class="ganttwrap" id="ganttWrap"></div>
+  </div>
+ </section>
+
+ <section class="view" id="view-depgraph">
+  <div class="panel">
+   <div class="panelhead"><h2>Bağımlılık Grafiği</h2><span class="mini">Bir görevin üzerine gel, bağlantıları vurgula</span></div>
+   <div class="depwrap" id="depWrap"></div>
+  </div>
+ </section>
+
+ <section class="view" id="view-reports">
+  <div class="panel">
+   <div class="panelhead"><h2>İş raporu</h2>
+    <div class="actions"><button id="printReport">🖨 PDF / Yazdır</button><button id="reportExport">CSV indir</button></div>
+   </div>
+   <div class="reportfilters">
+    <div><label for="reportFrom">Başlangıç tarihi</label><input id="reportFrom" type="date"></div>
+    <div><label for="reportTo">Bitiş tarihi</label><input id="reportTo" type="date"></div>
+    <div><label for="reportAssignee">Atanan kişi</label><select id="reportAssignee"><option value="">Tümü</option></select></div>
+   </div>
+   <div class="reportgrid" id="reportCards"></div>
+  </div>
+  <div class="layout">
+   <div class="panel"><h2>Durum dağılımı</h2><div id="reportStatus"></div></div>
+   <div class="panel"><h2>Engellenen / yapılamayan işler</h2><div id="blockedReport" class="quick"></div></div>
+  </div>
+  <div class="layout">
+   <div class="panel"><h2>Beklemede kalan işler (7+ gün "Devam ediyor")</h2><div id="pendingReport" class="quick"></div></div>
+   <div class="panel"><h2>Kişi bazlı özet</h2><div id="assigneeReport" class="quick"></div></div>
+  </div>
+  <div class="panel"><h2>Son 7 gün</h2><div id="weekReport"></div></div>
+ </section>
+
+ <section class="view" id="view-templates">
+  <div class="panel">
+   <div class="panelhead"><h2>Görev şablonları</h2><button class="primary" id="newTemplateBtn">＋ Şablon oluştur</button></div>
+   <div class="muted" style="margin-bottom:12px">Sık yaptığın işleri bir kez şablonlaştır; sonraki sefer tek tıkla görev oluştur.</div>
+   <div id="templateList" class="tasklist"></div>
+  </div>
+ </section>
+
+ <section class="view" id="view-archive">
+  <div class="panel">
+   <div class="panelhead"><h2>Arşiv</h2><span class="mini" id="archiveCount">0 kayıt</span></div>
+   <div class="mini" style="margin-bottom:10px">Arşivlenen görevler ana listelerde görünmez, arama ve raporlarda yer almaz.</div>
+   <div class="archlist" id="archiveList"></div>
+  </div>
+ </section>
+
+ <section class="view" id="view-history">
+  <div class="panel">
+   <div class="panelhead"><h2>Görev geçmişi</h2>
+    <div class="actions">
+     <button id="undoHistoryBtn">↶ Son işlemi geri al</button>
+     <button id="showUndoList">↺ Geri alma geçmişi</button>
+     <button id="clearHistory" class="danger">Geçmişi temizle</button>
+    </div>
+   </div>
+   <div id="historyList" class="quick"></div>
+  </div>
+  <div class="panel">
+   <div class="panelhead"><h2>Çöp kutusu</h2><button id="emptyTrash" class="danger">Çöp kutusunu boşalt</button></div>
+   <div id="trashList" class="quick"></div>
+  </div>
+ </section>
+
+ <section class="view" id="view-settings">
+  <div class="panel">
+   <h2>Profil Bilgileri</h2>
+   <p class="muted small">Ad ve soyad, ekip üye listelerinde ve atanan kişi önerilerinde görünür.</p>
+   <div class="formgrid" style="margin-top:10px">
+     <div class="field"><label>Ad *</label><input id="profileFirstName" maxlength="60"></div>
+     <div class="field"><label>Soyad *</label><input id="profileLastName" maxlength="60"></div>
+     <div class="field"><label>Telefon</label><input id="profilePhone" maxlength="30" placeholder="+90 5xx xxx xx xx"></div>
+     <div class="field"><label>E-posta</label><input id="profileEmail" disabled></div>
+   </div>
+   <div class="actions" style="margin-top:10px"><button class="primary" id="profileSaveBtn">Profili kaydet</button></div>
+  </div>
+
+  <div class="panel" id="invitationsPanel" style="display:none">
+   <div class="panelhead"><h2>Bekleyen Davetler</h2><span class="pill red" id="invitationsCount">0</span></div>
+   <div id="invitationsList"></div>
+  </div>
+
+  <div class="panel" id="wsManagePanel">
+   <h2>Çalışma Alanı Yönetimi</h2>
+   <div id="wsManageBody"><div class="empty">Yükleniyor…</div></div>
+  </div>
+
+  <div class="panel">
+   <h2>Hesap ve çevrimiçi senkronizasyon</h2>
+   <p class="muted">Veriler çalışma alanına göre Supabase üzerinde saklanır. Kişisel alan yalnızca sana, ekip alanları üyelere açıktır.</p>
+   <div class="notice" style="margin:12px 0">Bağlı proje: <strong>hwkcnbvqmuhrihgjrxez.supabase.co</strong><br>Giriş yapan hesap: <strong id="settingsUserEmail">—</strong><br>Sistem rolü: <strong id="settingsUserRole">—</strong></div>
+   <div class="actions" style="margin-top:10px">
+    <button id="settingsSignOut">Güvenli çıkış yap</button>
+    <button id="changePassword">Şifre değiştir</button>
+    <button id="enroll2FA">2FA kur</button>
+    <button id="verify2FA">2FA doğrula</button>
+   </div>
+   <p class="muted small" id="authStatus">Supabase bağlantısı hazırlanıyor…</p>
+  </div>
+
+  <div class="panel" id="adminPanel" style="display:none">
+   <h2>Yönetici: Sistem Kullanıcıları</h2>
+   <div class="rolelist" id="roleList"></div>
+  </div>
+
+  <div class="panel">
+   <h2>Oturum Aktivite Logu</h2>
+   <div class="actions" style="margin-bottom:10px"><button id="clearSessionLog" class="danger">Logu temizle</button></div>
+   <div class="sesslog" id="sessionLog"></div>
+  </div>
+
+  <div class="panel">
+   <h2>E-posta Hatırlatmaları</h2>
+   <p class="muted small">Her görev için 1 hafta kala, 3 gün kala, son gün ve geciktiğinde hatırlatma e-postası gönderilir.</p>
+   <div class="actions" style="margin-top:10px"><button id="checkReminders">Şimdi kontrol et</button></div>
+   <div id="reminderLog" class="quick" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel">
+   <h2>Veri yedekleme</h2>
+   <div class="actions">
+    <button id="exportJson">JSON yedeği indir</button>
+    <button id="importJson">JSON yedeği yükle</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+   </div>
+  </div>
+ </section>
+</main>
+</div>
+
+<nav class="bottomnav" id="bottomnav">
+ <button data-view="dashboard">◫<span>Özet</span></button>
+ <button data-view="focus">◎<span>Odak</span></button>
+ <button data-view="tasks">☷<span>Görev</span></button>
+ <button data-view="kanban">▦<span>Kanban</span></button>
+ <button data-view="settings">⚙<span>Ayarlar</span><span class="nav-badge" id="settingsBadgeM" style="display:none"></span></button>
+</nav>
+
+<div class="modalback" id="profileModal">
+ <div class="modal">
+  <div class="modalhead"><h2 id="profileModalTitle">Profil Bilgileri</h2><button data-close="profileModal">✕</button></div>
+  <p class="mini" id="profileModalDesc">Devam etmek için lütfen ad, soyad ve iletişim bilgini doldur.</p>
+  <div class="formgrid">
+    <div class="field"><label>Ad *</label><input id="profModalFirst" maxlength="60" placeholder="Adın"></div>
+    <div class="field"><label>Soyad *</label><input id="profModalLast" maxlength="60" placeholder="Soyadın"></div>
+    <div class="field"><label>Telefon</label><input id="profModalPhone" maxlength="30" placeholder="+90 5xx xxx xx xx"></div>
+    <div class="field"><label>E-posta</label><input id="profModalEmail" disabled></div>
+  </div>
+  <div class="modalfoot">
+    <span></span>
+    <button class="primary" id="profModalSave">Kaydet ve devam et</button>
+  </div>
+ </div>
+</div>
+
+<div class="modalback" id="taskModal">
+ <div class="modal">
+  <div class="modalhead"><h2 id="modalTitle">Yeni görev</h2><button data-close="taskModal">✕</button></div>
+  <form id="taskForm">
+   <input type="hidden" id="taskId">
+   <div class="formgrid">
+    <div class="field full"><label>Görev adı *</label><input id="taskTitle" required maxlength="180"></div>
+    <div class="field"><label>Kategori / süreç</label><input id="taskCategory" list="categoryOptions"><datalist id="categoryOptions"></datalist></div>
+    <div class="field"><label>Atanan kişi</label><input id="taskAssignee" list="assigneeOptions" placeholder="Örn. Ayşe Yılmaz"><datalist id="assigneeOptions"></datalist></div>
+    <div class="field"><label>Öncelik</label><select id="taskPriority"><option value="high">Yüksek</option><option value="medium" selected>Normal</option><option value="low">Düşük</option></select></div>
+    <div class="field"><label>Durum</label><select id="taskStatus"><option value="todo">Yapılacak</option><option value="doing">Devam ediyor</option><option value="blocked">Engellendi</option><option value="done">Tamamlandı</option></select></div>
+    <div class="field"><label>Başlangıç tarihi</label><input id="taskStart" type="date"></div>
+    <div class="field"><label>Son tarih</label><input id="taskDue" type="date"></div>
+    <div class="field"><label>Tekrarlama</label><select id="taskRepeat"><option value="none">Tekrarlama yok</option><option value="daily">Her gün</option><option value="weekdays">Hafta içi her gün</option><option value="weekly">Her hafta</option><option value="monthly">Her ay</option></select></div>
+    <div class="field full"><label>Etiketler (virgülle ayır)</label><input id="taskTags"></div>
+    <div class="field full"><label>Bağımlı olduğu görevler</label><select id="taskDependencies" multiple size="3"></select></div>
+    <div class="field full"><label>Açıklama</label><textarea id="taskDesc" rows="2"></textarea></div>
+    <div class="field full"><label>Yapılamama / engellenme nedeni</label><textarea id="taskBlockReason" rows="2"></textarea></div>
+    <div class="field full">
+     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><label style="margin:0">Süreç içindeki problemler</label><button type="button" id="addIssue">＋ Problem ekle</button></div>
+     <div id="issueEditor"></div>
+    </div>
+    <div class="field full">
+     <label>Alt görevler</label>
+     <div id="subtaskEditor" class="subtasks"></div>
+     <div style="display:flex;gap:8px;margin-top:8px"><input id="newSubtask" placeholder="Alt görev ekle…"><input id="newSubtaskDue" type="date" style="max-width:160px"><button type="button" id="addSubtask">Ekle</button></div>
+    </div>
+    <div class="field full" id="filesSection" style="display:none">
+     <label>Dosyalar</label>
+     <div id="filesList" class="files"></div>
+     <input type="file" id="fileInput" hidden>
+     <button type="button" id="uploadFileBtn" style="margin-top:8px">📎 Dosya yükle</button>
+    </div>
+    <div class="field full" id="commentsSection" style="display:none">
+     <label>Ekip Yorumları</label>
+     <div id="commentsList" class="comments"></div>
+     <div class="commentbox"><input id="commentInput" placeholder="Yorum yaz…"><button type="button" id="addCommentBtn">Gönder</button></div>
+    </div>
+   </div>
+   <div class="modalfoot">
+    <button type="button" class="danger" id="deleteTaskBtn" style="display:none">Görevi sil</button>
+    <div style="display:flex;gap:8px;margin-left:auto"><button type="button" data-close="taskModal">Vazgeç</button><button type="submit" class="primary">Kaydet</button></div>
+   </div>
+  </form>
+ </div>
+</div>
+
+<div class="modalback" id="templateModal">
+ <div class="modal">
+  <div class="modalhead"><h2>Şablon oluştur</h2><button data-close="templateModal">✕</button></div>
+  <form id="templateForm">
+   <div class="formgrid">
+    <div class="field full"><label>Şablon adı *</label><input id="templateTitle" required></div>
+    <div class="field"><label>Kategori</label><input id="templateCategory"></div>
+    <div class="field"><label>Öncelik</label><select id="templatePriority"><option value="high">Yüksek</option><option value="medium" selected>Normal</option><option value="low">Düşük</option></select></div>
+    <div class="field full"><label>Açıklama</label><textarea id="templateDesc" rows="3"></textarea></div>
+    <div class="field full"><label>Alt görevler (her satıra bir tane)</label><textarea id="templateSubs" rows="4"></textarea></div>
+   </div>
+   <div class="modalfoot"><span></span><div style="display:flex;gap:8px"><button type="button" data-close="templateModal">Vazgeç</button><button class="primary" type="submit">Şablonu kaydet</button></div></div>
+  </form>
+ </div>
+</div>
+
+<div class="modalback" id="undoModal">
+ <div class="modal">
+  <div class="modalhead"><h2>Geri Alma Geçmişi</h2><button data-close="undoModal">✕</button></div>
+  <div class="mini">Bir noktaya dönmek, o andan sonraki tüm değişiklikleri geri alır.</div>
+  <div id="undoList" class="quick" style="margin-top:10px"></div>
+ </div>
+</div>
+
+<div class="modalback" id="tfaModal">
+ <div class="modal">
+  <div class="modalhead"><h2>İki Adımlı Doğrulama</h2><button data-close="tfaModal">✕</button></div>
+  <div id="tfaBody"></div>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),today=()=>new Date().toLocaleDateString('sv-SE'),uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const STATUS={todo:'Yapılacak',doing:'Devam ediyor',blocked:'Engellendi',done:'Tamamlandı'},PRIORITY={high:'Yüksek',medium:'Normal',low:'Düşük'},ISSUE_PRIORITY={high:'Kritik',medium:'Orta',low:'Düşük'};
+const STATUS_EN={todo:'To Do',doing:'In Progress',blocked:'Blocked',done:'Done'},PRIORITY_EN={high:'High',medium:'Normal',low:'Low'};
+const ROLE_LABELS={owner:'Sahip',admin:'Yönetici',member:'Üye',viewer:'Görüntüleyici'};
+const I18N={tr:{app_name:'Agile Project Management',nav_dash:'Genel Bakış',nav_focus:'Odak Modu',nav_tasks:'Görevler',nav_kanban:'Kanban',nav_cal:'Takvim',nav_time:'Zaman Çizelgesi',nav_dep:'Bağımlılık',nav_rep:'Raporlar',nav_tpl:'Şablonlar',nav_arch:'Arşiv',nav_hist:'Geçmiş',nav_set:'Ayarlar',new_task:'Yeni görev',theme:'Tema değiştir',density:'Yoğunluk',csv:'CSV dışa aktar',sync_local:'Bu cihazda kayıt açık'},en:{app_name:'Work Tracker',nav_dash:'Overview',nav_focus:'Focus',nav_tasks:'Tasks',nav_kanban:'Kanban',nav_cal:'Calendar',nav_time:'Timeline',nav_dep:'Dependencies',nav_rep:'Reports',nav_tpl:'Templates',nav_arch:'Archive',nav_hist:'History',nav_set:'Settings',new_task:'New task',theme:'Toggle theme',density:'Density',csv:'Export CSV',sync_local:'Saved on this device'}};
+
+const PREFS_KEY='work-tracker-prefs';
+function loadPrefs(){try{const p=JSON.parse(localStorage.getItem(PREFS_KEY)||'{}');return {theme:p.theme||'light',density:p.density||'normal',lang:p.lang||'tr',activeWorkspaceId:p.activeWorkspaceId||null}}catch(e){return {theme:'light',density:'normal',lang:'tr',activeWorkspaceId:null}}}
+function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify({theme:data.theme,density:data.settings?.density||'normal',lang:data.settings?.lang||'tr',activeWorkspaceId}))}catch(e){}}
+
+let data={tasks:[],templates:[],history:[],dailyNotes:{},trash:[],undoStack:[],archive:[],sessionLog:[],settings:{density:'normal',lang:'tr'},theme:'light'};
+let activeView='dashboard',calDate=new Date(),editingSubs=[],editingIssues=[],selectedTasks=new Set(),sb=null,sbUser=null,syncing=false,toastTimer=null,focusIndex=0,pomoTimer=null,pomoLeft=25*60,pomoMode='work',currentComments=[],currentFiles=[],myRole='user';
+let activatingUserId=null;
+let workspaces=[];
+let activeWorkspaceId=null;
+let workspaceMembers=[];
+let workspaceInvitations=[];
+let myInvitations=[];
+let currentProfile={first_name:'',last_name:'',phone:'',email:''};
+let profileForced=false;
+
+const SESSION_STARTED_KEY='work-tracker-session-started-at',MAX_SESSION_MS=13*60*60*1000;
+const DEFAULT_SB={url:'https://hwkcnbvqmuhrihgjrxez.supabase.co',key:'sb_publishable_AcUg7YVnQCT5W-uq3qrYGQ_BYjYt9DA'};
+let gateMode='signin',approvedUserId=null;
+
+function tr(k){return I18N[data.settings?.lang||'tr'][k]||k}
+function S(k){return (data.settings?.lang||'tr')==='en'?(STATUS_EN[k]||k):(STATUS[k]||k)}
+function P(k){return (data.settings?.lang||'tr')==='en'?(PRIORITY_EN[k]||k):(PRIORITY[k]||k)}
+function roleLabel(r){return ROLE_LABELS[r]||r||''}
+function fullName(u){if(!u)return '';const n=[u.first_name,u.last_name].filter(Boolean).join(' ').trim();return n||u.email||''}
+function memberDisplay(m){if(!m)return '';const n=[m.first_name,m.last_name].filter(Boolean).join(' ').trim();return n?(n+(m.email?' ('+m.email+')':'')):(m.email||m.user_id||'')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function subStatus(s){return s.status||(s.done?'done':'todo')}
+function issueActive(i){return !i.resolvedAt}
+function fmtDate(d){if(!d)return 'Tarih yok';const x=new Date(d+'T12:00:00');return x.toLocaleDateString((data.settings?.lang||'tr')==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'short',year:'numeric'})}
+function isLate(t){return t.status!=='done'&&t.due&&t.due<today()}
+function dayDiff(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)}
+function notify(s){const el=$('toast');if(!el)return;el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800)}
+function download(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function selectedValues(el){return [...el.selectedOptions].map(o=>o.value)}
+function detectDevice(){const ua=navigator.userAgent;let os='Bilinmeyen',br='Bilinmeyen';if(/Windows/.test(ua))os='Windows';else if(/Mac/.test(ua))os='macOS';else if(/Android/.test(ua))os='Android';else if(/iPhone|iPad/.test(ua))os='iOS';else if(/Linux/.test(ua))os='Linux';if(/Edg\//.test(ua))br='Edge';else if(/Chrome/.test(ua))br='Chrome';else if(/Firefox/.test(ua))br='Firefox';else if(/Safari/.test(ua))br='Safari';return os+' · '+br}
+function logSession(action,detail=''){const entry={id:uid(),at:new Date().toISOString(),action,detail,device:detectDevice()};data.sessionLog=data.sessionLog||[];data.sessionLog.unshift(entry);data.sessionLog=data.sessionLog.slice(0,200)}
+function log(action,task,detail=''){data.history.unshift({id:uid(),at:new Date().toISOString(),action,title:task?.title||'—',taskId:task?.id||null,detail});data.history=data.history.slice(0,500)}
+function snapshot(label){data.undoStack=data.undoStack||[];data.undoStack.push({id:uid(),label,at:new Date().toISOString(),tasks:JSON.parse(JSON.stringify(data.tasks)),trash:JSON.parse(JSON.stringify(data.trash||[])),archive:JSON.parse(JSON.stringify(data.archive||[])),templates:JSON.parse(JSON.stringify(data.templates||[]))});data.undoStack=data.undoStack.slice(-30)}
+function undoLast(){const x=(data.undoStack||[]).pop();if(!x){notify('Geri alınacak işlem yok.');return}data.tasks=x.tasks;data.trash=x.trash;data.archive=x.archive||[];data.templates=x.templates;log('İşlem geri alındı',{title:x.label});persist();render();notify('Son işlem geri alındı.')}
+function restoreToUndo(id){const idx=(data.undoStack||[]).findIndex(x=>x.id===id);if(idx<0)return;const x=data.undoStack[idx];if(!confirm('Bu noktaya dönülecek. Sonraki '+(data.undoStack.length-idx-1)+' adım silinecek. Devam?'))return;data.tasks=x.tasks;data.trash=x.trash;data.archive=x.archive||[];data.templates=x.templates;data.undoStack=data.undoStack.slice(0,idx);log('Geçmiş noktasına dönüldü',{title:x.label});persist();render();$('undoModal').classList.remove('open');notify('Geçmiş noktasına dönüldü.')}
+function persist(){scheduleSync()}
+function freshUserData(){const prefs=loadPrefs();return {tasks:[],templates:[],history:[],dailyNotes:{},trash:[],undoStack:[],archive:[],sessionLog:[],settings:{density:prefs.density,lang:prefs.lang},theme:prefs.theme}}
+function load(){data=freshUserData()}
+
+/* ============= PROFILE ============= */
+function profileComplete(){return !!(currentProfile.first_name&&currentProfile.last_name)}
+async function loadProfile(){
+  currentProfile={first_name:'',last_name:'',phone:'',email:sbUser?.email||''};
+  try{
+    const {data:row,error}=await sb.from('work_tracker_access_requests').select('first_name,last_name,phone,email').eq('user_id',sbUser.id).maybeSingle();
+    if(error)throw error;
+    if(row){currentProfile.first_name=row.first_name||'';currentProfile.last_name=row.last_name||'';currentProfile.phone=row.phone||'';currentProfile.email=row.email||sbUser.email||''}
+  }catch(e){console.warn('Profil okunamadı',e)}
+}
+function fillProfileInputs(scope){
+  const p=currentProfile;
+  if(scope==='settings'){
+    $('profileFirstName').value=p.first_name||'';
+    $('profileLastName').value=p.last_name||'';
+    $('profilePhone').value=p.phone||'';
+    $('profileEmail').value=p.email||'';
+  }else if(scope==='modal'){
+    $('profModalFirst').value=p.first_name||'';
+    $('profModalLast').value=p.last_name||'';
+    $('profModalPhone').value=p.phone||'';
+    $('profModalEmail').value=p.email||'';
+  }
+}
+function showProfileModal(forced){
+  profileForced=!!forced;
+  fillProfileInputs('modal');
+  $('profileModalTitle').textContent=forced?'Profil Bilgilerini Tamamla':'Profil Bilgileri';
+  $('profileModalDesc').textContent=forced?'Devam etmek için lütfen ad, soyad ve iletişim bilgini doldur.':'Bilgilerini güncelle.';
+  $('profileModal').classList.toggle('forced',!!forced);
+  $('profileModal').classList.add('open');
+  setTimeout(()=>$('profModalFirst').focus(),50);
+}
+async function saveProfileFromModal(){
+  const fn=$('profModalFirst').value.trim();
+  const ln=$('profModalLast').value.trim();
+  const ph=$('profModalPhone').value.trim();
+  if(!fn||!ln){notify('Ad ve soyad zorunlu.');return}
+  try{
+    const {error}=await sb.rpc('wt_update_profile',{fn,ln,ph});
+    if(error)throw error;
+    currentProfile.first_name=fn;currentProfile.last_name=ln;currentProfile.phone=ph;
+    await loadWorkspaceMembers();
+    if(profileForced)notify('Profil kaydedildi.');
+    else notify('Profil güncellendi.');
+    $('profileModal').classList.remove('open');
+    $('profileModal').classList.remove('forced');
+    profileForced=false;
+    fillProfileInputs('settings');
+    render();
+  }catch(e){notify('Hata: '+e.message)}
+}
+async function saveProfileFromSettings(){
+  const fn=$('profileFirstName').value.trim();
+  const ln=$('profileLastName').value.trim();
+  const ph=$('profilePhone').value.trim();
+  if(!fn||!ln){notify('Ad ve soyad zorunlu.');return}
+  try{
+    const {error}=await sb.rpc('wt_update_profile',{fn,ln,ph});
+    if(error)throw error;
+    currentProfile.first_name=fn;currentProfile.last_name=ln;currentProfile.phone=ph;
+    await loadWorkspaceMembers();
+    notify('Profil güncellendi.');
+    render();
+  }catch(e){notify('Hata: '+e.message)}
+}
+
+/* ============= WORKSPACE ============= */
+async function loadWorkspaces(){
+  const {data:rows,error}=await sb.from('work_tracker_workspaces').select('id,name,type,owner_id,created_at').order('created_at');
+  if(error)throw error;
+  const {data:mems,error:e2}=await sb.from('work_tracker_workspace_members').select('workspace_id,role').eq('user_id',sbUser.id);
+  if(e2)throw e2;
+  const roles={};(mems||[]).forEach(m=>roles[m.workspace_id]=m.role);
+  workspaces=(rows||[]).map(w=>({...w,role:roles[w.id]||'member'}));
+}
+async function ensurePersonalWorkspace(){
+  let p=workspaces.find(w=>w.type==='personal'&&w.owner_id===sbUser.id);
+  if(p)return p;
+  const {error}=await sb.from('work_tracker_workspaces').insert({name:'Kişisel',type:'personal',owner_id:sbUser.id});
+  if(error)throw error;
+  await loadWorkspaces();
+  return workspaces.find(w=>w.type==='personal'&&w.owner_id===sbUser.id);
+}
+async function loadWorkspaceMembers(){
+  workspaceMembers=[];
+  if(!activeWorkspaceId)return;
+  try{const {data:rows,error}=await sb.rpc('wt_member_emails',{ws:activeWorkspaceId});if(error)throw error;workspaceMembers=(rows||[]).map(r=>({user_id:r.user_id,role:r.role,email:r.email||'',first_name:r.first_name||'',last_name:r.last_name||'',phone:r.phone||''}))}catch(e){console.warn('Üyeler yüklenemedi',e)}
+}
+async function loadWorkspaceInvitations(){
+  workspaceInvitations=[];
+  if(!activeWorkspaceId||!canManageWs())return;
+  try{const {data:rows,error}=await sb.rpc('wt_workspace_invitations',{ws:activeWorkspaceId});if(error)throw error;workspaceInvitations=rows||[]}catch(e){console.warn('Davetler yüklenemedi',e)}
+}
+function memberNames(){return (workspaceMembers||[]).map(m=>[m.first_name,m.last_name].filter(Boolean).join(' ').trim()||m.email).filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr'))}
+function activeWs(){return workspaces.find(w=>w.id===activeWorkspaceId)}
+function canManageWs(){const w=activeWs();return w&&(w.role==='owner'||w.role==='admin')}
+
+function renderWsSwitcher(){
+  const w=activeWs();
+  $('wsCurrentName').textContent=w?w.name:'—';
+  $('wsCurrentType').textContent=w?((w.type==='personal'?'Kişisel':'Ekip')+' · '+roleLabel(w.role)):'—';
+}
+function openWsMenu(){
+  const menu=$('wsMenu');
+  const inviteBadge=myInvitations.length?` <span class="ws-badge" style="background:var(--bad);color:#fff">${myInvitations.length} davet</span>`:'';
+  menu.innerHTML=workspaces.map(w=>`<button class="ws-item ${w.id===activeWorkspaceId?'active':''}" data-ws-switch="${w.id}"><span><b>${esc(w.name)}</b><span class="ws-badge ${w.type==='personal'?'personal':''}">${w.type==='personal'?'Kişisel':'Ekip'}</span><div class="mini ws-role">${roleLabel(w.role)}</div></span></button>`).join('')+
+  `<div class="ws-new"><button class="ws-item" id="wsNewTeam"><span><b>＋ Yeni ekip oluştur</b></span></button>${myInvitations.length?`<button class="ws-item" id="wsOpenInvitations"><span><b>📩 Bekleyen davetler${inviteBadge}</b></span></button>`:''}</div>`;
+  menu.style.display='block';
+}
+function closeWsMenu(){const m=$('wsMenu');if(m)m.style.display='none'}
+function toggleWsMenu(){const m=$('wsMenu');if(m.style.display==='block')closeWsMenu();else openWsMenu()}
+
+async function switchWorkspace(id){
+  if(id===activeWorkspaceId)return;
+  if(activeWorkspaceId){clearTimeout(syncTimer);try{await pushRemote()}catch(e){}}
+  activeWorkspaceId=id;savePrefs();data=freshUserData();
+  await pullRemote();await loadWorkspaceMembers();await loadWorkspaceInvitations();
+  render();renderWsSwitcher();renderWsManagePanel();renderInvitations();
+  notify('Çalışma alanı değiştirildi: '+(activeWs()?.name||''));
+}
+async function createTeamWorkspace(){
+  const name=prompt('Ekip adı:');
+  if(!name||!name.trim())return;
+  try{const {data:row,error}=await sb.from('work_tracker_workspaces').insert({name:name.trim(),type:'team',owner_id:sbUser.id}).select().single();if(error)throw error;await loadWorkspaces();await switchWorkspace(row.id);notify('Ekip oluşturuldu.')}catch(e){notify('Hata: '+e.message)}
+}
+function renderWsManagePanel(){
+  const w=activeWs();const body=$('wsManageBody');
+  if(!body)return;
+  if(!w){body.innerHTML='<div class="empty">Çalışma alanı yükleniyor…</div>';return}
+  const canManage=canManageWs();const isOwner=w.role==='owner';const isPersonal=w.type==='personal';
+  let html='';
+  html+=`<div class="formgrid"><div class="field full"><label>Çalışma alanı adı</label><input id="wsNameInput" value="${esc(w.name)}" ${canManage?'':'disabled'}></div></div>`;
+  if(canManage)html+=`<div class="actions"><button class="primary" id="wsRenameBtn">Adı kaydet</button></div>`;
+  html+=`<div class="notice" style="margin:12px 0">${isPersonal?'Kişisel çalışma alanı — yalnızca sana özeldir.':'Ekip çalışma alanı — üyelerle paylaşılır.'} · Rolün: <b>${roleLabel(w.role)}</b></div>`;
+  html+=`<h3 style="margin-top:14px">Üyeler (${workspaceMembers.length})</h3>`;
+  html+=`<div class="rolelist">`;
+  if(!workspaceMembers.length)html+=`<div class="empty">Üye listesi yükleniyor…</div>`;
+  workspaceMembers.forEach(m=>{
+    const isMe=m.user_id===sbUser.id;
+    const canEditRole=canManage&&!isPersonal&&m.role!=='owner';
+    html+=`<div class="rolerow">
+      <div><b>${esc(memberDisplay(m))}</b>${isMe?' <span class="mini">(sen)</span>':''}<div class="mini">${roleLabel(m.role)}</div></div>
+      <div>${canEditRole?`<select data-wsm-role="${m.user_id}"><option value="member"${m.role==='member'?' selected':''}>Üye</option><option value="admin"${m.role==='admin'?' selected':''}>Yönetici</option><option value="viewer"${m.role==='viewer'?' selected':''}>Görüntüleyici</option></select>`:`<span class="mini">${roleLabel(m.role)}</span>`}</div>
+      <div>${canManage&&!isMe&&!isPersonal&&m.role!=='owner'?`<button class="danger" data-wsm-remove="${m.user_id}">Çıkar</button>`:''}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  if(canManage&&!isPersonal){
+    html+=`<div style="margin-top:14px">
+      <label>Yeni üye davet et (e-posta)</label>
+      <div style="display:flex;gap:8px">
+        <input id="wsInviteEmail" placeholder="kisi@ornek.com" style="flex:1">
+        <select id="wsInviteRole" style="max-width:140px"><option value="member">Üye</option><option value="admin">Yönetici</option><option value="viewer">Görüntüleyici</option></select>
+        <button class="primary" id="wsInviteBtn">Davet gönder</button>
+      </div>
+      <div class="mini">Davet edilen kişi kendi hesabıyla giriş yapıp Ayarlar → Bekleyen Davetler'den kabul edince üye olur.</div>
+    </div>`;
+  }
+  if(canManage&&workspaceInvitations.length){
+    html+=`<h3 style="margin-top:18px">Bekleyen Davetler (${workspaceInvitations.length})</h3>`;
+    html+=`<div class="rolelist">`;
+    workspaceInvitations.forEach(i=>{
+      html+=`<div class="rolerow"><div><b>${esc(i.invited_email)}</b><div class="mini">${roleLabel(i.role)} · ${new Date(i.created_at).toLocaleString('tr-TR')} · Davet eden: ${esc(i.invited_by_name||'')}</div></div><div></div><div><button class="danger" data-ws-inv-cancel="${i.id}">İptal</button></div></div>`;
+    });
+    html+=`</div>`;
+  }
+  if(isOwner&&!isPersonal)html+=`<div class="actions" style="margin-top:14px"><button class="danger" id="wsDeleteBtn">Ekibi sil</button></div>`;
+  if(!isPersonal&&w.role!=='owner')html+=`<div class="actions" style="margin-top:14px"><button class="danger" id="wsLeaveBtn">Ekipten ayrıl</button></div>`;
+  body.innerHTML=html;
+}
+async function renameActiveWorkspace(){const w=activeWs();if(!w)return;const name=($('wsNameInput').value||'').trim();if(!name)return;try{const {error}=await sb.from('work_tracker_workspaces').update({name}).eq('id',activeWorkspaceId);if(error)throw error;w.name=name;renderWsSwitcher();renderWsManagePanel();notify('Ad güncellendi.')}catch(e){notify('Hata: '+e.message)}}
+async function inviteMember(){
+  const em=($('wsInviteEmail').value||'').trim().toLowerCase();
+  const role=$('wsInviteRole').value||'member';
+  if(!em)return;
+  try{
+    const {data:status,error}=await sb.rpc('wt_invite_member',{ws:activeWorkspaceId,em,inv_role:role});
+    if(error)throw error;
+    if(status==='ok'){notify('Davet gönderildi.');$('wsInviteEmail').value='';await loadWorkspaceInvitations();renderWsManagePanel()}
+    else if(status==='notfound')notify('Bu e-posta ile onaylı kullanıcı bulunamadı.')
+    else if(status==='already_member')notify('Bu kişi zaten üye.')
+    else if(status==='already_invited')notify('Bu kişiye zaten bekleyen bir davet var.')
+    else if(status==='personal')notify('Kişisel alana davet gönderilemez.')
+    else if(status==='forbidden')notify('Yetkin yok.')
+    else notify('İşlem başarısız: '+status);
+  }catch(e){notify('Hata: '+e.message)}
+}
+async function cancelWorkspaceInvitation(id){
+  if(!confirm('Davet iptal edilsin mi?'))return;
+  try{const {error}=await sb.rpc('wt_cancel_invitation',{inv_id:id});if(error)throw error;await loadWorkspaceInvitations();renderWsManagePanel();notify('Davet iptal edildi.')}catch(e){notify('Hata: '+e.message)}
+}
+async function removeMember(uid){
+  if(!confirm('Bu üye çıkarılsın mı?'))return;
+  try{const {error}=await sb.from('work_tracker_workspace_members').delete().eq('workspace_id',activeWorkspaceId).eq('user_id',uid);if(error)throw error;await loadWorkspaceMembers();renderWsManagePanel();notify('Üye çıkarıldı.')}catch(e){notify('Hata: '+e.message)}
+}
+async function changeMemberRole(uid,role){
+  try{const {error}=await sb.from('work_tracker_workspace_members').update({role}).eq('workspace_id',activeWorkspaceId).eq('user_id',uid);if(error)throw error;notify('Rol güncellendi.');await loadWorkspaceMembers();renderWsManagePanel()}catch(e){notify('Hata: '+e.message)}
+}
+async function deleteActiveTeam(){
+  if(!confirm('Ekip ve tüm görevleri silinecek. Emin misin?'))return;
+  try{const {error}=await sb.from('work_tracker_workspaces').delete().eq('id',activeWorkspaceId);if(error)throw error;notify('Ekip silindi.');await loadWorkspaces();const p=workspaces.find(x=>x.type==='personal')||workspaces[0];if(p)await switchWorkspace(p.id)}catch(e){notify('Hata: '+e.message)}
+}
+async function leaveActiveTeam(){
+  if(!confirm('Ekipten ayrılmak istediğine emin misin?'))return;
+  try{const {error}=await sb.from('work_tracker_workspace_members').delete().eq('workspace_id',activeWorkspaceId).eq('user_id',sbUser.id);if(error)throw error;notify('Ayrıldın.');await loadWorkspaces();const p=workspaces.find(x=>x.type==='personal')||workspaces[0];if(p)await switchWorkspace(p.id)}catch(e){notify('Hata: '+e.message)}
+}
+
+/* ============= INVITATIONS ============= */
+async function loadMyInvitations(){
+  myInvitations=[];
+  try{const {data:rows,error}=await sb.rpc('wt_my_invitations');if(error)throw error;myInvitations=rows||[]}catch(e){console.warn('Davetlerim yüklenemedi',e)}
+  renderInvitationsBadge();
+}
+function renderInvitationsBadge(){
+  const n=myInvitations.length;
+  ['settingsBadge','settingsBadgeM'].forEach(id=>{
+    const el=$(id);if(!el)return;
+    if(n>0){el.textContent=n;el.style.display='inline-block'}else{el.style.display='none'}
+  });
+}
+function renderInvitations(){
+  const panel=$('invitationsPanel');const list=$('invitationsList');const cnt=$('invitationsCount');
+  if(!panel||!list)return;
+  if(!myInvitations.length){panel.style.display='none';return}
+  panel.style.display='block';cnt.textContent=myInvitations.length;
+  list.innerHTML=myInvitations.map(i=>`<div class="invrow">
+    <div class="inv-info">
+      <b>${esc(i.workspace_name)}</b>
+      <div class="mini">Davet eden: ${esc(i.invited_by_name||i.invited_by_email||'')} · Rol: ${roleLabel(i.role)}<br>${new Date(i.created_at).toLocaleString('tr-TR')}</div>
+    </div>
+    <div class="inv-actions">
+      <button class="primary" data-inv-accept="${i.id}">Kabul Et</button>
+      <button class="danger" data-inv-decline="${i.id}">Reddet</button>
+    </div>
+  </div>`).join('');
+}
+async function respondInvitation(id,accept){
+  try{
+    const {data:status,error}=await sb.rpc('wt_respond_invitation',{inv_id:id,accept});
+    if(error)throw error;
+    if(status==='accepted'){
+      notify('Davet kabul edildi. Ekibe katıldın.');
+      await loadMyInvitations();
+      await loadWorkspaces();
+      renderWsSwitcher();
+      renderInvitations();
+      const inv=myInvitations.find(x=>x.id===id);
+      if(inv)await switchWorkspace(inv.workspace_id);
+    }else if(status==='declined'){
+      notify('Davet reddedildi.');
+      await loadMyInvitations();renderInvitations();
+    }else{notify('İşlem başarısız: '+status)}
+  }catch(e){notify('Hata: '+e.message)}
+}
+
+/* ============= TASKS ============= */
+function badges(t){
+  const b=[];
+  if(isLate(t))b.push('<span class="badge red">Gecikti</span>');
+  if(t.status!=='done'&&t.due===today())b.push('<span class="badge orange">Bugün</span>');
+  if(t.repeat&&t.repeat!=='none')b.push('<span class="badge">↻ Tekrarlı</span>');
+  if((t.dependencies||[]).length)b.push('<span class="badge">⇄ '+(t.dependencies||[]).length+' bağımlı</span>');
+  const subs=t.subtasks||[];if(subs.length)b.push('<span class="badge">☰ '+subs.filter(s=>subStatus(s)==='done').length+'/'+subs.length+'</span>');
+  const activeIss=(t.issues||[]).filter(issueActive).length;if(activeIss>=3)b.push('<span class="badge red">⚠ '+activeIss+' problem</span>');
+  if(t.assignee)b.push('<span class="badge">👤 '+esc(t.assignee)+'</span>');
+  return b.length?'<div class="badges">'+b.join('')+'</div>':'';
+}
+function issueAge(i){if(!i.startDate)return '';const d=dayDiff(i.startDate,today());if(d<0)return '';return d===0?'bugün':d+' gün'}
+function taskHTML(t){
+  const subs=(t.subtasks||[]).slice().sort((a,b)=>(a.order??0)-(b.order??0));
+  const issues=t.issues||[];
+  const subsHtml=subs.length?`<div class="cardsubs">${subs.map((s,idx)=>{const ss=subStatus(s);return `<div class="cardsubrow"><select data-card-sub="${t.id}:${s.id}">${Object.keys(STATUS).map(k=>`<option value="${k}"${ss===k?' selected':''}>${S(k)}</option>`).join('')}</select><span class="cardsubtitle${ss==='done'?' done':''}">${esc(s.title)}${s.due?` · <span class="mini">${fmtDate(s.due)}</span>`:''}</span><button type="button" class="submove" data-submove="${t.id}:${s.id}:-1" title="Yukarı">▲</button><button type="button" class="submove" data-submove="${t.id}:${s.id}:1" title="Aşağı">▼</button><button type="button" class="submove danger" data-subdel-card="${t.id}:${s.id}" title="Sil">✕</button></div>`}).join('')}<div class="subquick"><input data-quicksub="${t.id}" placeholder="Yeni alt görev…" maxlength="120"><button type="button" data-quicksub-btn="${t.id}">Ekle</button>${subs.some(s=>subStatus(s)!=='done')?`<button type="button" class="ghost" data-subdoneall="${t.id}">Tümünü bitir</button>`:''}</div></div>`:'';
+  const issuesHtml=issues.length?`<div class="cardissues">${issues.map(i=>`<label class="cardissue${i.resolvedAt?' resolved':''}"><input type="checkbox" data-card-issue="${t.id}:${i.id}"${i.resolvedAt?' checked':''}><span class="iprio ${i.priority||'medium'}"></span><span>${esc(i.type||'Problem')}${i.priority?' ['+ISSUE_PRIORITY[i.priority]+']':''}: ${esc(i.description||'')}${i.startDate?' · '+issueAge(i):''}${i.resolvedAt?` · ✓ (${fmtDate((i.resolvedAt||'').slice(0,10))})`:''}${i.resolutionNote?' — '+esc(i.resolutionNote):''}</span></label>`).join('')}</div>`:'';
+  return `<article class="task ${t.status==='done'?'done':''}" data-prio="${t.priority||'medium'}" draggable="false">
+   <input class="check" type="checkbox" ${t.status==='done'?'checked':''} data-complete="${t.id}">
+   <input type="checkbox" class="taskselect" data-select-task="${t.id}" ${selectedTasks.has(t.id)?'checked':''}>
+   <div>
+    <div class="tasktitle">${esc(t.title)}</div>
+    <div class="taskmeta"><span class="pill ${statusClass(t)}">${S(t.status)}</span>${t.category?`<span>◈ ${esc(t.category)}</span>`:''}<span>◷ ${fmtDate(t.due)}</span>${t.blockReason?`<span class="pill red">Engel: ${esc(t.blockReason)}</span>`:''}</div>
+    ${badges(t)}${subsHtml}${issuesHtml}
+   </div>
+   <div class="taskbuttons">
+    <button data-edit="${t.id}">Düzenle</button>
+    <button data-archive="${t.id}" title="Arşivle">▣</button>
+    <button class="danger" data-trash="${t.id}" title="Çöpe taşı">🗑</button>
+   </div>
+  </article>`;
+}
+function statusClass(t){return t.status==='done'?'green':t.status==='blocked'?'red':t.status==='doing'?'orange':''}
+function categories(){return [...new Set(data.tasks.filter(t=>!t.archived).map(t=>t.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'))}
+function assignees(){const fromTasks=[...new Set(data.tasks.filter(t=>!t.archived).map(t=>t.assignee).filter(Boolean))];const fromMembers=memberNames();return [...new Set([...fromTasks,...fromMembers])].sort((a,b)=>a.localeCompare(b,'tr'))}
+function renderTasks(list,el){if(!el)return;el.innerHTML=list.length?list.map(taskHTML).join(''):'<div class="empty">Burada gösterilecek görev yok.</div>'}
+
+function renderDashboard(){
+  const ts=data.tasks.filter(t=>!t.archived);
+  const open=ts.filter(t=>t.status!=='done');
+  const doneToday=ts.filter(t=>t.status==='done'&&(t.completedAt||'').slice(0,10)===today()).length;
+  const late=ts.filter(isLate).length;
+  const progress=ts.length?Math.round(ts.filter(t=>t.status==='done').length/ts.length*100):0;
+  $('statOpen').textContent=open.length;$('statDone').textContent=doneToday;$('statLate').textContent=late;$('statProgress').textContent=progress+'%';
+  const pri=[...open].sort((a,b)=>({high:0,medium:1,low:2}[a.priority]-({high:0,medium:1,low:2}[b.priority]))||((a.due||'9999').localeCompare(b.due||'9999'))).slice(0,6);
+  renderTasks(pri,$('priorityList'));
+  const counts=Object.keys(STATUS).map(k=>({k,n:ts.filter(t=>t.status===k).length}));
+  $('statusBars').innerHTML=counts.map(x=>`<div class="barrow"><span>${S(x.k)}</span><div class="bar"><span style="width:${ts.length?x.n/ts.length*100:0}%"></span></div><b>${x.n}</b></div>`).join('');
+  const events=data.history.filter(h=>h.at.slice(0,10)===today()).slice(0,8);
+  $('todayLogCount').textContent=events.length+' kayıt';
+  $('todayLog').innerHTML=events.length?events.map(h=>`<div class="quickrow"><div><b>${esc(h.title)}</b><div class="mini">${esc(h.action)}${h.detail?' · '+esc(h.detail):''}</div></div><span class="mini">${new Date(h.at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join(''):'<div class="empty">Bugün henüz kayıt yok.</div>';
+  $('dailyNote').value=data.dailyNotes[today()]||'';
+  const issues=ts.flatMap(t=>(t.issues||[]).filter(issueActive).map(i=>({...i,taskTitle:t.title,taskId:t.id})));
+  $('activeIssueCount').textContent=issues.length;
+  $('activeIssues').innerHTML=issues.length?issues.slice(0,8).map(i=>`<div class="quickrow"><div><b>${esc(i.taskTitle)}</b><div class="mini">${esc(i.type)} [${ISSUE_PRIORITY[i.priority||'medium']}] · ${issueAge(i)}<br>${esc(i.description)}</div></div><button data-edit="${i.taskId}">Aç</button></div>`).join(''):'<div class="empty">Aktif problem yok.</div>';
+  const upcoming=ts.filter(t=>t.status!=='done'&&t.due).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5);
+  $('upcomingList').innerHTML=upcoming.length?upcoming.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${fmtDate(t.due)}${t.assignee?' · 👤 '+esc(t.assignee):''}</div></div><span class="pill ${isLate(t)?'red':t.due===today()?'orange':''}">${isLate(t)?'Gecikti':t.due===today()?'Bugün':dayDiff(today(),t.due)+' gün'}</span></div>`).join(''):'<div class="empty">Yaklaşan son tarih yok.</div>';
+}
+
+function renderAllTasks(){
+  const q=$('searchTasks').value.toLocaleLowerCase('tr'),st=$('statusFilter').value,cat=$('categoryFilter').value,late=$('lateFilter').value,sort=$('sortTasks').value,asg=$('assigneeFilter').value;
+  let ts=data.tasks.filter(t=>!t.archived).filter(t=>(!q||[t.title,t.desc,t.category,t.blockReason,t.assignee].join(' ').toLocaleLowerCase('tr').includes(q))&&(!st||t.status===st)&&(!cat||t.category===cat)&&(!asg||t.assignee===asg)&&(!late||(late==='late'?isLate(t):late==='today'?t.status!=='done'&&t.due===today():!t.due)));
+  ts.sort((a,b)=>{if(sort==='due')return (a.due||'9999').localeCompare(b.due||'9999');if(sort==='created')return (b.createdAt||'').localeCompare(a.createdAt||'');if(sort==='assignee')return (a.assignee||'zz').localeCompare(b.assignee||'zz','tr');return ({high:0,medium:1,low:2}[a.priority]-({high:0,medium:1,low:2}[b.priority]))||((a.due||'9999').localeCompare(b.due||'9999'))});
+  renderTasks(ts,$('allTasks'));
+  const cs=categories(),prev=$('categoryFilter').value;
+  $('categoryFilter').innerHTML='<option value="">Tüm kategoriler</option>'+cs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('categoryFilter').value=cs.includes(prev)?prev:'';
+  $('categoryOptions').innerHTML=cs.map(c=>`<option value="${esc(c)}">`).join('');
+  const as=assignees(),pa=$('assigneeFilter').value;
+  $('assigneeFilter').innerHTML='<option value="">Tüm kişiler</option>'+as.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  $('assigneeFilter').value=as.includes(pa)?pa:'';
+  $('selectedCount').textContent=selectedTasks.size+' görev seçildi';
+}
+
+function renderKanban(){
+  const cols=[['todo','Yapılacak'],['doing','Devam ediyor'],['blocked','Engellendi'],['done','Tamamlandı']];
+  $('kanbanBoard').innerHTML=cols.map(([k,label])=>{
+    const ts=data.tasks.filter(t=>!t.archived&&t.status===k);
+    return `<section class="kancol" data-drop-status="${k}"><div class="kanhead"><span>${S(k)}</span><span class="pill">${ts.length}</span></div>${ts.map(t=>`<article class="kanitem" draggable="true" data-drag-task="${t.id}" data-prio="${t.priority||'medium'}"><b>${esc(t.title)}</b>${t.assignee?`<div class="mini">👤 ${esc(t.assignee)}</div>`:''}<div class="taskmeta"><span>${P(t.priority)}</span><span>${fmtDate(t.due)}</span></div>${badges(t)}<div class="actions" style="margin-top:8px"><button data-edit="${t.id}">Aç</button></div></article>`).join('')||'<div class="empty">Görev yok</div>'}</section>`;
+  }).join('');
+}
+
+function renderCalendar(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  $('monthName').textContent=calDate.toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
+  const first=new Date(y,m,1),start=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+  let html=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map(x=>`<div class="weekday">${x}</div>`).join('');
+  for(let i=0;i<start;i++)html+='<div></div>';
+  for(let d=1;d<=days;d++){
+    const date=new Date(y,m,d).toLocaleDateString('sv-SE');
+    const items=data.tasks.filter(t=>!t.archived&&t.due===date);
+    html+=`<div class="daycell ${date===today()?'today':''}" data-calday="${date}"><div class="daynum">${d}</div>${items.slice(0,3).map(t=>`<div class="calitem" title="${esc(t.title)}">${esc(t.title)}</div>`).join('')}${items.length>3?`<div class="mini">+${items.length-3} görev</div>`:''}</div>`;
+  }
+  $('calendarGrid').innerHTML=html;
+}
+
+function renderGantt(){
+  const showDone=$('ganttShowDone').checked;
+  const tasks=data.tasks.filter(t=>!t.archived&&(showDone||t.status!=='done')&&(t.startDate||t.due)).slice(0,60);
+  if(!tasks.length){$('ganttWrap').innerHTML='<div class="empty">Tarih aralığı olan görev yok.</div>';return}
+  let minD=null,maxD=null;
+  tasks.forEach(t=>{const s=t.startDate||t.due,d=t.due||t.startDate;if(!minD||s<minD)minD=s;if(!maxD||d>maxD)maxD=d});
+  const start=new Date(minD+'T12:00:00'),end=new Date(maxD+'T12:00:00');
+  const dayCount=Math.max(7,Math.min(90,Math.round((end-start)/86400000)+1));
+  const days=Array.from({length:dayCount},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);return d});
+  const cellW=26;
+  let head='<div class="gantthead" style="min-width:200px">Görev</div>';
+  days.forEach(d=>{head+=`<div class="gantthead" style="min-width:${cellW}px">${d.getDate()}</div>`});
+  let rows='';
+  tasks.forEach(t=>{
+    const s=t.startDate||t.due,d=t.due||t.startDate;
+    const sIdx=Math.max(0,Math.round((new Date(s+'T12:00:00')-start)/86400000));
+    const eIdx=Math.min(dayCount-1,Math.round((new Date(d+'T12:00:00')-start)/86400000));
+    const span=Math.max(1,eIdx-sIdx+1);
+    const cls=t.status==='done'?'done':isLate(t)?'late':'';
+    rows+=`<div class="ganttname">${esc(t.title)}</div>`;
+    for(let i=0;i<dayCount;i++){
+      if(i===sIdx){rows+=`<div class="ganttcell" style="grid-column:span ${span}"><div class="ganttbar ${cls}"></div></div>`;i+=span-1}
+      else{rows+=`<div class="ganttcell"></div>`}
+    }
+  });
+  $('ganttWrap').innerHTML=`<div class="ganttgrid" style="grid-template-columns:200px repeat(${dayCount},${cellW}px)">${head}${rows}</div>`;
+}
+
+function renderDepGraph(){
+  const wrap=$('depWrap');if(!wrap)return;
+  let svg=wrap.querySelector('svg.depsvg');
+  if(!svg){svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','depsvg');wrap.appendChild(svg)}
+  wrap.querySelectorAll('.depnode').forEach(n=>n.remove());
+  const ph=wrap.querySelector('.empty');if(ph)ph.remove();
+  const tasks=data.tasks.filter(t=>!t.archived);
+  if(!tasks.length){svg.innerHTML='';const d=document.createElement('div');d.className='empty';d.textContent='Görev yok.';wrap.appendChild(d);return}
+  const cols=Math.min(4,Math.max(2,Math.ceil(Math.sqrt(tasks.length))));
+  const W=wrap.clientWidth||900;const colW=W/cols;const rowH=90;
+  const byId={};tasks.forEach(t=>byId[t.id]=t);
+  const depth={};
+  function getDepth(id,seen=new Set()){if(depth[id]!==undefined)return depth[id];if(seen.has(id))return 0;seen.add(id);const t=byId[id];if(!t)return 0;const deps=(t.dependencies||[]).filter(d=>byId[d]);if(!deps.length){depth[id]=0;return 0}let m=0;deps.forEach(d=>{m=Math.max(m,getDepth(d,seen)+1)});depth[id]=m;return m}
+  tasks.forEach(t=>getDepth(t.id));
+  const byDepth={};tasks.forEach(t=>{const d=depth[t.id]||0;(byDepth[d]=byDepth[d]||[]).push(t)});
+  const svgParts=[];const positions={};
+  Object.keys(byDepth).sort((a,b)=>a-b).forEach((d,di)=>{const list=byDepth[d];list.forEach((t,i)=>{const x=20+di*(colW*0.9);const y=20+i*rowH;positions[t.id]={x,y,w:160,h:44}})});
+  tasks.forEach(t=>{(t.dependencies||[]).forEach(depId=>{const a=positions[depId],b=positions[t.id];if(!a||!b)return;const x1=a.x+a.w,y1=a.y+a.h/2,x2=b.x,y2=b.y+b.h/2;const midX=(x1+x2)/2;svgParts.push(`<path d="M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}" stroke="var(--accent)" stroke-width="2" fill="none" marker-end="url(#arrow)"/>`)})});
+  svg.innerHTML=`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>${svgParts.join('')}`;
+  const maxY=Math.max(400,...Object.values(positions).map(p=>p.y+80));
+  const maxX=Math.max(400,...Object.values(positions).map(p=>p.x+200));
+  wrap.style.minHeight=maxY+'px';wrap.style.minWidth=maxX+'px';
+  svg.setAttribute('width',maxX);svg.setAttribute('height',maxY);
+  Object.keys(positions).forEach(id=>{const t=byId[id];if(!t)return;const p=positions[id];const el=document.createElement('div');el.className='depnode';el.style.left=p.x+'px';el.style.top=p.y+'px';el.innerHTML=`<b>${esc(t.title)}</b><div class="mini">${S(t.status)}</div>`;el.addEventListener('mouseenter',()=>el.classList.add('hl'));el.addEventListener('mouseleave',()=>el.classList.remove('hl'));el.addEventListener('click',()=>openTask(t.id));wrap.appendChild(el)});
+}
+
+function renderReports(){
+  const from=$('reportFrom').value,to=$('reportTo').value,asg=$('reportAssignee').value;
+  const ts=data.tasks.filter(t=>!t.archived).filter(t=>(!from||(t.completedAt||t.createdAt||'').slice(0,10)>=from)&&(!to||(t.completedAt||t.createdAt||'').slice(0,10)<=to)&&(!asg||t.assignee===asg));
+  const done=ts.filter(t=>t.status==='done').length,late=ts.filter(isLate).length;
+  const blocked=ts.filter(t=>t.status==='blocked'||(t.blockReason&&t.status!=='done')||(t.issues||[]).some(issueActive));
+  $('reportCards').innerHTML=[['Toplam görev',ts.length],['Tamamlanan',done],['Tamamlanma oranı',ts.length?Math.round(done/ts.length*100)+'%':'0%'],['Geciken',late],['Engellenen / problemli',blocked.length],['Aktif problem',ts.reduce((n,t)=>n+(t.issues||[]).filter(issueActive).length,0)]].map(x=>`<div class="reportbox"><span class="muted">${x[0]}</span><strong>${x[1]}</strong></div>`).join('');
+  $('reportStatus').innerHTML=Object.keys(STATUS).map(k=>{const n=ts.filter(t=>t.status===k).length;return `<div class="barrow"><span>${S(k)}</span><div class="bar"><span style="width:${ts.length?n/ts.length*100:0}%"></span></div><b>${n}</b></div>`}).join('');
+  $('blockedReport').innerHTML=blocked.length?blocked.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${esc(t.blockReason||'Engellenmiş olarak işaretlendi')}</div></div><button data-edit="${t.id}">Aç</button></div>`).join(''):'<div class="empty">Engellenen görev yok.</div>';
+  const pending=ts.filter(t=>t.status==='doing'&&t.updatedAt&&dayDiff(t.updatedAt.slice(0,10),today())>=7);
+  $('pendingReport').innerHTML=pending.length?pending.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${dayDiff(t.updatedAt.slice(0,10),today())} gündür "Devam ediyor" · Son güncelleme: ${fmtDate(t.updatedAt.slice(0,10))}</div></div><button data-edit="${t.id}">Aç</button></div>`).join(''):'<div class="empty">Beklemede kalan iş yok.</div>';
+  const amap={};ts.forEach(t=>{const a=t.assignee||'(Atanmamış)';(amap[a]=amap[a]||{total:0,done:0,late:0}).total++;if(t.status==='done')amap[a].done++;if(isLate(t))amap[a].late++});
+  const akeys=Object.keys(amap).sort();
+  $('assigneeReport').innerHTML=akeys.length?akeys.map(a=>{const s=amap[a];return `<div class="quickrow"><div><b>${esc(a)}</b><div class="mini">${s.total} görev · ${s.done} tamamlandı · ${s.late} geciken</div></div><span class="pill">${s.total?Math.round(s.done/s.total*100):0}%</span></div>`}).join(''):'<div class="empty">Kayıt yok.</div>';
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toLocaleDateString('sv-SE');const n=data.history.filter(h=>h.at.slice(0,10)===ds&&h.action.includes('tamam')).length;days.push({label:d.toLocaleDateString('tr-TR',{weekday:'short',day:'2-digit'}),n})}
+  $('weekReport').innerHTML=days.map(x=>`<div class="barrow"><span>${x.label}</span><div class="bar"><span style="width:${Math.min(100,x.n*12)}%"></span></div><b>${x.n}</b></div>`).join('');
+  const as=assignees(),prev=$('reportAssignee').value;
+  $('reportAssignee').innerHTML='<option value="">Tümü</option>'+as.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  $('reportAssignee').value=as.includes(prev)?prev:'';
+}
+
+function renderTemplates(){
+  $('templateList').innerHTML=data.templates.length?data.templates.map(t=>`<article class="task" data-prio="medium"><div class="logo" style="width:30px;height:30px">▧</div><div><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${esc(t.category||'Kategorisiz')} · ${P(t.priority)} · ${(t.subtasks||[]).length} alt görev</div><div class="mini">${esc(t.desc||'')}</div></div><div class="taskbuttons"><button data-use-template="${t.id}">Görev oluştur</button><button data-del-template="${t.id}" class="danger">Sil</button></div></article>`).join(''):'<div class="empty">Henüz şablon yok.</div>';
+}
+
+function renderHistory(){
+  $('historyList').innerHTML=data.history.length?data.history.slice(0,200).map(h=>`<div class="quickrow"><div><b>${esc(h.action)}: ${esc(h.title)}</b><div class="mini">${esc(h.detail||'')}</div></div><span class="mini">${new Date(h.at).toLocaleString('tr-TR',{dateStyle:'short',timeStyle:'short'})}</span></div>`).join(''):'<div class="empty">Henüz görev geçmişi yok.</div>';
+  $('trashList').innerHTML=(data.trash||[]).length?data.trash.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">Çöp kutusuna taşındı · ${fmtDate((t.deletedAt||'').slice(0,10))}</div></div><div class="actions"><button data-restore="${t.id}">Geri yükle</button><button class="danger" data-purge="${t.id}">Kalıcı sil</button></div></div>`).join(''):'<div class="empty">Çöp kutusu boş.</div>';
+  const arch=(data.archive||[]);
+  $('archiveCount').textContent=arch.length+' kayıt';
+  $('archiveList').innerHTML=arch.length?arch.map(t=>`<div class="archrow"><div><b>${esc(t.title)}</b><div class="mini">${esc(t.category||'')} · ${fmtDate(t.due)} · ${t.status==='done'?'Tamamlandı':'Arşivlendi'}</div></div><div class="actions"><button data-unarchive="${t.id}">Geri al</button><button class="danger" data-arch-del="${t.id}">Kalıcı sil</button></div></div>`).join(''):'<div class="empty">Arşivde kayıt yok.</div>';
+  const sl=data.sessionLog||[];
+  $('sessionLog').innerHTML=sl.length?sl.slice(0,50).map(x=>`<div class="sessrow"><div>${esc(x.action)}${x.detail?' · '+esc(x.detail):''}</div><span class="mini">${esc(x.device||'')}</span><span class="mini">${new Date(x.at).toLocaleString('tr-TR',{dateStyle:'short',timeStyle:'short'})}</span></div>`).join(''):'<div class="empty">Kayıt yok.</div>';
+}
+
+function focusList(){return data.tasks.filter(t=>!t.archived&&t.status!=='done'&&(t.due===today()||t.status==='doing'||isLate(t)))}
+function renderFocus(){
+  const list=focusList();
+  $('focusCount').textContent=list.length+' görev';
+  if(!list.length){$('focusTask').innerHTML='<div class="empty">Odakta görev yok. Harika!</div>';$('focusNext').textContent='';return}
+  if(focusIndex>=list.length)focusIndex=0;
+  const t=list[focusIndex];
+  $('focusTask').innerHTML=taskHTML(t);
+  $('focusNext').textContent=`Sıradaki: ${focusIndex+1}/${list.length}`;
+}
+function startPomo(){if(pomoTimer)return;pomoTimer=setInterval(()=>{pomoLeft--;if(pomoLeft<=0){if(pomoMode==='work'){pomoMode='break';pomoLeft=5*60;notify('Mola zamanı! 5 dakika.')}else{pomoMode='work';pomoLeft=25*60;notify('Çalışma zamanı! 25 dakika.')}}updatePomoUI()},1000);updatePomoUI()}
+function pausePomo(){if(pomoTimer){clearInterval(pomoTimer);pomoTimer=null;updatePomoUI()}}
+function resetPomo(){pausePomo();pomoMode='work';pomoLeft=25*60;updatePomoUI()}
+function updatePomoUI(){const m=Math.floor(pomoLeft/60),s=pomoLeft%60;$('pomoTime').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');$('pomoInfo').textContent=(pomoMode==='work'?'Çalışma':'Mola')+(pomoTimer?' · çalışıyor':' · durdu')}
+
+function render(){
+  data.trash=data.trash||[];data.undoStack=data.undoStack||[];data.archive=data.archive||[];data.sessionLog=data.sessionLog||[];
+  if(!data.settings)data.settings={density:'normal',lang:'tr'};
+  document.documentElement.dataset.theme=data.theme;
+  document.documentElement.classList.toggle('density-compact',data.settings.density==='compact');
+  $('app').dataset.theme=data.theme;
+  $('themeBtn').textContent=(data.theme==='dark'?'☀ ':'◐ ')+tr('theme');
+  $('themeBtn2').textContent=data.theme==='dark'?'☀':'◐';
+  $('todayLabel').textContent=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'}).toLocaleUpperCase('tr');
+  try{renderDashboard();renderFocus();renderAllTasks();renderKanban();renderCalendar();renderGantt();renderDepGraph();renderReports();renderTemplates();renderHistory();}catch(e){console.error('Render hatası:',e)}
+  $('syncBadge').innerHTML=sbUser?('● Çevrimiçi senkronizasyon açık'):('● '+tr('sync_local'));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(I18N[data.settings.lang][k])el.textContent=I18N[data.settings.lang][k]});
+  $('settingsUserRole').textContent=myRole||'user';
+  $('adminPanel').style.display=myRole==='admin'?'block':'none';
+  renderWsSwitcher();
+  renderInvitationsBadge();
+  renderInvitations();
+}
+const viewTitles={dashboard:['Genel Bakış','Nerede kaldığını bil. Bir sonraki adımı kaçırma.'],focus:['Odak Modu','Bugünün işlerine odaklan.'],tasks:['Görevler','Tüm işlerini tek yerden takip et.'],kanban:['Kanban Panosu','Görevlerini durumlarına göre gör.'],calendar:['Takvim','Son tarihleri gör.'],timeline:['Zaman Çizelgesi','Görevleri zaman ekseninde gör.'],depgraph:['Bağımlılık Grafiği','Görevler arası bağımlılıklar.'],reports:['Raporlar','İlerlemeyi ve engelleri incele.'],templates:['Şablonlar','Tekrarlayan işleri şablonlaştır.'],archive:['Arşiv','Arşivlenen görevler.'],history:['Geçmiş','Değişiklikleri izle.'],settings:['Ayarlar','Profil, çalışma alanı, hesap ve güvenlik.']};
+function goto(v){
+  activeView=v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
+  document.querySelectorAll('#nav button, #bottomnav button').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+  $('pageTitle').textContent=viewTitles[v][0];$('subtitle').textContent=viewTitles[v][1];
+  if(v==='tasks')renderAllTasks();
+  if(v==='focus')renderFocus();
+  if(v==='timeline')renderGantt();
+  if(v==='depgraph')renderDepGraph();
+  if(v==='settings'){fillProfileInputs('settings');renderWsManagePanel();renderInvitations()}
+}
+
+function openTask(id=null,defaults={}){
+  const t=data.tasks.find(x=>x.id===id)||(data.archive||[]).find(x=>x.id===id);
+  $('taskForm').reset();
+  $('taskId').value=t?.id||'';
+  $('modalTitle').textContent=t?'Görevi düzenle':'Yeni görev';
+  $('deleteTaskBtn').style.display=t?'inline-block':'none';
+  $('taskTitle').value=t?.title||defaults.title||'';
+  $('taskCategory').value=t?.category||defaults.category||'';
+  $('taskAssignee').value=t?.assignee||defaults.assignee||'';
+  $('taskPriority').value=t?.priority||defaults.priority||'medium';
+  $('taskStatus').value=t?.status||'todo';
+  $('taskStart').value=t?.startDate||defaults.startDate||'';
+  $('taskDue').value=t?.due||defaults.due||'';
+  $('taskTags').value=(t?.tags||defaults.tags||[]).join(', ');
+  $('assigneeOptions').innerHTML=assignees().map(n=>`<option value="${esc(n)}">`).join('');
+  $('taskDependencies').innerHTML=data.tasks.filter(x=>x.id!==(t?.id||'')).map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join('');
+  [...$('taskDependencies').options].forEach(o=>o.selected=(t?.dependencies||defaults.dependencies||[]).includes(o.value));
+  $('taskRepeat').value=t?.repeat||'none';
+  $('taskDesc').value=t?.desc||defaults.desc||'';
+  $('taskBlockReason').value=t?.blockReason||'';
+  editingIssues=(t?.issues||defaults.issues||[]).map(i=>({...i}));
+  renderIssueEditor();
+  editingSubs=(t?.subtasks||defaults.subtasks||[]).map((s,idx)=>({...s,status:subStatus(s),done:subStatus(s)==='done',order:s.order??idx}));
+  renderSubEditor();
+  $('filesSection').style.display=sbUser?'block':'none';
+  $('commentsSection').style.display=sbUser?'block':'none';
+  currentComments=[];currentFiles=[];
+  if(sbUser&&t?.id){loadComments(t.id);listFiles(t.id)}
+  renderFiles();
+  $('taskModal').classList.add('open');
+}
+function renderIssueEditor(){
+  $('issueEditor').innerHTML=editingIssues.length?editingIssues.map((i,n)=>`<div class="issuebox"><div class="issuegrid">
+    <div><label>Başlangıç *</label><input type="date" data-issue-date="${n}" value="${esc(i.startDate||today())}"></div>
+    <div><label>Tür</label><select data-issue-type="${n}"><option ${i.type==='Teknik'?'selected':''}>Teknik</option><option ${i.type==='Operasyonel'?'selected':''}>Operasyonel</option><option ${i.type==='Malzeme / veri bekleme'?'selected':''}>Malzeme / veri bekleme</option><option ${i.type==='Bağımlılık'?'selected':''}>Bağımlılık</option><option ${i.type==='Diğer'?'selected':''}>Diğer</option></select></div>
+    <div><label>Öncelik</label><select data-issue-priority="${n}"><option value="high" ${i.priority==='high'?'selected':''}>Kritik</option><option value="medium" ${(i.priority||'medium')==='medium'?'selected':''}>Orta</option><option value="low" ${i.priority==='low'?'selected':''}>Düşük</option></select></div>
+    <div><label>Açıklama *</label><textarea data-issue-desc="${n}" rows="2">${esc(i.description||'')}</textarea>
+      <label class="checkline"><input type="checkbox" data-issue-resolved="${n}" ${i.resolvedAt?'checked':''}> Çözüldü</label>
+      ${i.resolvedAt?`<div class="mini">Çözülme: ${fmtDate(i.resolvedAt.slice(0,10))}</div>`:''}
+      ${i.resolvedAt?`<input data-issue-resnote="${n}" placeholder="Çözülme notu…" value="${esc(i.resolutionNote||'')}" style="margin-top:5px;font-size:11px;padding:5px 7px">`:''}
+    </div>
+    <button type="button" class="danger" data-issue-del="${n}">Sil</button>
+  </div></div>`).join(''):'<div class="empty">Problem kaydı yok.</div>';
+}
+function renderSubEditor(){
+  $('subtaskEditor').innerHTML=editingSubs.length?editingSubs.map((s,i)=>{const ss=subStatus(s);return `<div class="subrow">
+    <select data-editor-sub-index="${i}">${Object.keys(STATUS).map(k=>`<option value="${k}"${ss===k?' selected':''}>${S(k)}</option>`).join('')}</select>
+    <input data-subtitle="${i}" value="${esc(s.title)}" placeholder="Alt görev">
+    <input type="date" data-subdue="${i}" value="${esc(s.due||'')}">
+    <button type="button" data-submove-editor="${i}:-1" class="submove">▲</button>
+    <button type="button" data-submove-editor="${i}:1" class="submove">▼</button>
+    <button type="button" data-subdel="${i}">×</button>
+  </div>`}).join(''):'<div class="mini">Alt görev eklenmedi.</div>';
+}
+function addSub(){const v=$('newSubtask').value.trim();if(!v)return;editingSubs.push({id:uid(),title:v,done:false,status:'todo',due:$('newSubtaskDue').value||'',order:editingSubs.length});$('newSubtask').value='';$('newSubtaskDue').value='';renderSubEditor()}
+function moveSub(list,idx,dir){const j=idx+dir;if(j<0||j>=list.length)return;const tmp=list[idx];list[idx]=list[j];list[j]=tmp;list.forEach((s,i)=>s.order=i)}
+
+function saveTask(t,action='Güncellendi'){snapshot(action);const old=data.tasks.find(x=>x.id===t.id);if(old){Object.assign(old,t,{updatedAt:new Date().toISOString()});log(action,old)}else{data.tasks.unshift(t);log('Görev oluşturuldu',t)}persist();render()}
+function completeTask(id,checked){
+  const t=data.tasks.find(x=>x.id===id);if(!t)return;
+  if(checked){
+    const waiting=(t.dependencies||[]).map(depId=>data.tasks.find(x=>x.id===depId)).filter(x=>x&&x.status!=='done');
+    if(waiting.length){notify('Önce bağımlı görevleri tamamla: '+waiting.map(x=>x.title).join(', '));render();return}
+    snapshot('Görev durumu');t.status='done';t.completedAt=new Date().toISOString();
+    if(t.subtasks)t.subtasks.forEach(s=>{s.done=true;s.status='done'});
+    log('Görev tamamlandı',t);logSession('Görev tamamlandı',t.title);
+    if(t.repeat&&t.repeat!=='none')createRepeat(t);
+  }else{snapshot('Görev yeniden açıldı');t.status='doing';t.completedAt=null;log('Görev yeniden açıldı',t)}
+  t.updatedAt=new Date().toISOString();persist();render();
+}
+function createRepeat(t){
+  const d=t.due||today();let next=new Date(d+'T12:00:00');
+  if(t.repeat==='daily')next.setDate(next.getDate()+1);
+  if(t.repeat==='weekdays'){next.setDate(next.getDate()+1);if(next.getDay()===6)next.setDate(next.getDate()+2);if(next.getDay()===0)next.setDate(next.getDate()+1)}
+  if(t.repeat==='weekly')next.setDate(next.getDate()+7);
+  if(t.repeat==='monthly'){const day=next.getDate();next.setDate(1);next.setMonth(next.getMonth()+1);const last=new Date(next.getFullYear(),next.getMonth()+1,0).getDate();next.setDate(Math.min(day,last))}
+  const nd=next.toLocaleDateString('sv-SE');
+  if(data.tasks.some(x=>x.parentRepeatId===t.id&&x.due===nd))return;
+  const nt={...t,id:uid(),status:'todo',completedAt:null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),due:nd,subtasks:(t.subtasks||[]).map(s=>({...s,id:uid(),done:false,status:'todo'})),parentRepeatId:t.id,remindersSent:null};
+  data.tasks.unshift(nt);log('Tekrarlayan görev oluşturuldu',nt,'Sonraki tarih: '+nd);
+}
+function moveToTrash(id){const t=data.tasks.find(x=>x.id===id);if(!t)return;snapshot('Görev çöp kutusuna taşındı');data.trash=data.trash||[];data.trash.unshift({...t,deletedAt:new Date().toISOString()});data.tasks=data.tasks.filter(x=>x.id!==id);selectedTasks.delete(id);log('Görev çöp kutusuna taşındı',t);logSession('Görev çöp kutusuna taşındı',t.title);persist();render();notify('Görev çöp kutusuna taşındı.')}
+function archiveTask(id){const t=data.tasks.find(x=>x.id===id);if(!t)return;snapshot('Görev arşivlendi');data.archive=data.archive||[];data.archive.unshift({...t,archivedAt:new Date().toISOString()});data.tasks=data.tasks.filter(x=>x.id!==id);selectedTasks.delete(id);log('Görev arşivlendi',t);persist();render();notify('Görev arşivlendi.')}
+function unarchiveTask(id){const t=(data.archive||[]).find(x=>x.id===id);if(!t)return;snapshot('Arşivden çıkarıldı');data.tasks.unshift({...t,archivedAt:undefined,updatedAt:new Date().toISOString()});data.archive=data.archive.filter(x=>x.id!==id);log('Görev arşivden çıkarıldı',t);persist();render()}
+function bulkUpdate(status){
+  if(!selectedTasks.size){notify('Önce görev seç.');return}
+  const targets=data.tasks.filter(t=>selectedTasks.has(t.id));
+  if(status==='doing'||status==='done'){
+    const blocked=targets.filter(t=>(t.dependencies||[]).some(depId=>data.tasks.some(d=>d.id===depId&&d.status!=='done')));
+    if(blocked.length){notify('Bağımlı görevler tamamlanmadan ilerletilemeyenler: '+blocked.map(t=>t.title).join(', '));return}
+  }
+  snapshot('Toplu durum değişikliği');let n=0;
+  data.tasks.forEach(t=>{if(selectedTasks.has(t.id)){t.status=status;t.updatedAt=new Date().toISOString();if(status==='done'){t.completedAt=new Date().toISOString();if(t.subtasks)t.subtasks.forEach(s=>{s.done=true;s.status='done'})}else t.completedAt=null;log('Toplu durum değişikliği',t,S(status));n++}});
+  selectedTasks.clear();persist();render();notify(n+' görev güncellendi.');
+}
+function bulkTrash(){
+  if(!selectedTasks.size){notify('Önce görev seç.');return}
+  if(!confirm(selectedTasks.size+' görev çöp kutusuna taşınsın mı?'))return;
+  snapshot('Toplu çöp kutusu işlemi');
+  [...selectedTasks].forEach(id=>{const t=data.tasks.find(x=>x.id===id);if(t)data.trash.unshift({...t,deletedAt:new Date().toISOString()});data.tasks=data.tasks.filter(x=>x.id!==id)});
+  selectedTasks.clear();log('Toplu silme',{title:'Görevler'},'Çöp kutusuna taşındı');persist();render();notify('Seçili görevler çöp kutusuna taşındı.');
+}
+function bulkArchive(){
+  if(!selectedTasks.size){notify('Önce görev seç.');return}
+  snapshot('Toplu arşivleme');
+  [...selectedTasks].forEach(id=>{const t=data.tasks.find(x=>x.id===id);if(t)data.archive.unshift({...t,archivedAt:new Date().toISOString()});data.tasks=data.tasks.filter(x=>x.id!==id)});
+  selectedTasks.clear();log('Toplu arşivleme',{title:'Görevler'},'Arşivlendi');persist();render();notify('Seçili görevler arşivlendi.');
+}
+
+function quickAddSub(taskId,title){
+  const t=data.tasks.find(x=>x.id===taskId);if(!t)return;
+  if(!t.subtasks)t.subtasks=[];
+  t.subtasks.push({id:uid(),title,done:false,status:'todo',order:t.subtasks.length});
+  t.updatedAt=new Date().toISOString();
+  snapshot('Alt görev eklendi');log('Alt görev eklendi',t,title);persist();render();
+}
+function setSubStatus(taskId,subId,status){
+  const t=data.tasks.find(x=>x.id===taskId);if(!t)return;
+  const s=(t.subtasks||[]).find(x=>x.id===subId);if(!s)return;
+  s.status=status;s.done=status==='done';
+  if(t.status==='todo'&&t.subtasks.some(x=>subStatus(x)!=='todo'))t.status='doing';
+  t.updatedAt=new Date().toISOString();log('Alt görev durumu değişti',t,`${s.title} → ${S(status)}`);persist();render();
+}
+function moveSubOnCard(taskId,subId,dir){
+  const t=data.tasks.find(x=>x.id===taskId);if(!t)return;
+  const list=(t.subtasks||[]).slice().sort((a,b)=>(a.order??0)-(b.order??0));
+  const idx=list.findIndex(x=>x.id===subId);const j=idx+dir;if(j<0||j>=list.length)return;
+  const tmp=list[idx].order??idx;list[idx].order=list[j].order??j;list[j].order=tmp;
+  t.subtasks=list;t.updatedAt=new Date().toISOString();persist();render();
+}
+function removeSubOnCard(taskId,subId){
+  const t=data.tasks.find(x=>x.id===taskId);if(!t)return;
+  t.subtasks=(t.subtasks||[]).filter(x=>x.id!==subId);
+  t.updatedAt=new Date().toISOString();snapshot('Alt görev silindi');log('Alt görev silindi',t);persist();render();
+}
+function completeAllSubs(taskId){
+  const t=data.tasks.find(x=>x.id===taskId);if(!t)return;
+  (t.subtasks||[]).forEach(s=>{s.done=true;s.status='done'});
+  t.updatedAt=new Date().toISOString();snapshot('Tüm alt görevler tamamlandı');log('Tüm alt görevler tamamlandı',t);persist();render();
+}
+
+function exportCSV(){
+  const rows=[['Görev','Kategori','Atanan','Etiketler','Öncelik','Durum','Başlangıç','Son tarih','Tekrarlama','Alt görevler','Engel','Problemler','Açıklama'],...data.tasks.filter(t=>!t.archived).map(t=>[t.title,t.category||'',t.assignee||'',(t.tags||[]).join(', '),P(t.priority),S(t.status),t.startDate||'',t.due||'',t.repeat||'none',(t.subtasks||[]).map(s=>`[${S(subStatus(s))}] ${s.title}`).join(' | '),t.blockReason||'',(t.issues||[]).map(i=>`${i.startDate} ${i.type} [${ISSUE_PRIORITY[i.priority||'medium']}]: ${i.description} ${i.resolvedAt?'(Çözüldü: '+i.resolvedAt.slice(0,10)+')':'(Aktif)'}${i.resolutionNote?' — '+i.resolutionNote:''}`).join(' | '),t.desc||''])];
+  const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  download(csv,'is-takip-gorevleri-'+today()+'.csv','text/csv;charset=utf-8');
+}
+function saveJSON(){download(JSON.stringify(data,null,2),'is-takip-yedek-'+today()+'.json','application/json')}
+function loadJSON(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const x=JSON.parse(r.result);
+      if(!Array.isArray(x.tasks))throw Error('Görev listesi yok');
+      x.trash=Array.isArray(x.trash)?x.trash:[];x.undoStack=Array.isArray(x.undoStack)?x.undoStack:[];x.archive=Array.isArray(x.archive)?x.archive:[];x.sessionLog=Array.isArray(x.sessionLog)?x.sessionLog:[];
+      x.settings=x.settings||{density:'normal',lang:'tr'};
+      x.tasks=x.tasks.map(t=>({...t,tags:Array.isArray(t.tags)?t.tags:[],dependencies:Array.isArray(t.dependencies)?t.dependencies:[],issues:Array.isArray(t.issues)?t.issues:[],subtasks:Array.isArray(t.subtasks)?t.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}));
+      if(!confirm('Mevcut kayıtların yerine yedek yüklensin mi?'))return;
+      const localPrefs=loadPrefs();
+      data={...data,...x};data.theme=localPrefs.theme;data.settings={density:localPrefs.density,lang:localPrefs.lang};
+      persist();render();notify('Yedek yüklendi.');
+    }catch(e){alert('Yedek okunamadı: '+e.message)}
+  };
+  r.readAsText(file);
+}
+
+function mergeData(local,remote){
+  const map=new Map();
+  (remote.tasks||[]).forEach(t=>map.set(t.id,t));
+  (local.tasks||[]).forEach(t=>{
+    const ex=map.get(t.id);
+    if(!ex)map.set(t.id,t);
+    else{const lU=t.updatedAt||t.createdAt||'',rU=ex.updatedAt||ex.createdAt||'';if(lU>=rU)map.set(t.id,t)}
+  });
+  const localPrefs=loadPrefs();
+  return {...local,tasks:[...map.values()],templates:(local.templates?.length?local.templates:remote.templates||[]),history:(local.history?.length?local.history:remote.history||[]),theme:localPrefs.theme,settings:{density:localPrefs.density,lang:localPrefs.lang}};
+}
+
+/* ============= AUTH ============= */
+function setAuthStatus(s){const el=$('authStatus');if(el)el.textContent=s}
+function gateMessage(s){const el=$('gateStatus');if(!el)return;el.textContent=s;el.classList.add('show')}
+function setGateMode(mode){
+  gateMode=mode;
+  $('gateHeading').textContent=mode==='signup'?'Kayıt talebi oluştur':'Hesabına giriş yap';
+  $('gateDescription').textContent=mode==='signup'?'E-posta adresinle talep gönder.':'Devam etmek için onaylı hesabınla giriş yap.';
+  $('gateSubmit').textContent=mode==='signup'?'Kayıt talebi gönder':'Giriş yap';
+  $('gateRegister').style.display=mode==='signup'?'none':'block';
+  $('gateMode').textContent=mode==='signup'?'Giriş ekranına dön':'Kayıt talebine geç';
+  $('gateStatus').classList.remove('show');
+}
+function setApprovedUI(user){
+  document.body.classList.toggle('is-approved',!!user);
+  $('settingsUserEmail').textContent=user?.email||'—';
+  if(user){setAuthStatus('Oturum açık: '+user.email);$('syncBadge').innerHTML='● Çevrimiçi senkronizasyon açık';logSession('Oturum açıldı',user.email)}
+  else{$('syncBadge').innerHTML='● '+tr('sync_local')}
+}
+async function checkApproval(user){
+  if(!sb||!user)return {ok:false,status:'missing'};
+  const {data:request,error}=await sb.from('work_tracker_access_requests').select('status,email,role,first_name,last_name,phone').eq('user_id',user.id).maybeSingle();
+  if(error)throw error;
+  if(!request)return {ok:false,status:'missing'};
+  myRole=request.role||'user';
+  currentProfile={first_name:request.first_name||'',last_name:request.last_name||'',phone:request.phone||'',email:request.email||user.email||''};
+  return {ok:request.status==='approved',status:request.status,email:request.email};
+}
+async function loadRole(){try{const {data:r}=await sb.from('work_tracker_access_requests').select('role').eq('user_id',sbUser.id).maybeSingle();myRole=r?.role||'user'}catch(e){myRole='user'}}
+
+async function activateApprovedUser(user,forcePersonal){
+  if(activatingUserId===user.id)return;
+  activatingUserId=user.id;
+  try{
+    sbUser=user;approvedUserId=user.id;
+    data=freshUserData();
+    await loadRole();
+    await loadProfile();
+    await loadWorkspaces();
+    const prefs=loadPrefs();
+    let target=null;
+    /* Yeni giriş yapıldıysa kişisel alanı zorla */
+    if(forcePersonal){
+      const p=workspaces.find(w=>w.type==='personal'&&w.owner_id===user.id);
+      if(p)target=p.id;
+    }
+    /* Aksi halde (sayfa yenileme) son kullanılan çalışma alanını koru */
+    if(!target&&prefs.activeWorkspaceId&&workspaces.some(w=>w.id===prefs.activeWorkspaceId))target=prefs.activeWorkspaceId;
+    if(!target){const p=workspaces.find(w=>w.type==='personal'&&w.owner_id===user.id);if(p)target=p.id}
+    if(!target&&workspaces.length)target=workspaces[0].id;
+    if(!target){const p=await ensurePersonalWorkspace();target=p?.id||null}
+    activeWorkspaceId=target;savePrefs();
+    await pullRemote();
+    await loadWorkspaceMembers();
+    await loadWorkspaceInvitations();
+    await loadMyInvitations();
+    setApprovedUI(user);render();renderWsManagePanel();fillProfileInputs('settings');gateMessage('');
+    if(!data.updatedAt)await pushRemote();
+    if(myRole==='admin')await renderAdminPanel();
+    if(!profileComplete()){
+      showProfileModal(true);
+    }
+  }catch(e){sbUser=null;approvedUserId=null;setApprovedUI(null);throw e}
+  finally{activatingUserId=null}
+}
+async function setupSb(){
+  try{
+    if(!window.supabase?.createClient)throw Error('Supabase kitaplığı yüklenemedi.');
+    sb=window.supabase.createClient(DEFAULT_SB.url,DEFAULT_SB.key,{auth:{persistSession:true,storage:window.sessionStorage,storageKey:'work-tracker-auth-session',autoRefreshToken:true,detectSessionInUrl:true}});
+    setAuthStatus('Supabase bağlantısı hazır.');return true;
+  }catch(e){gateMessage('Supabase bağlantı hatası: '+e.message);return false}
+}
+async function authAction(kind){
+  if(!sb){if(!await setupSb())return}
+  const email=$('gateEmail').value.trim().toLowerCase(),password=$('gatePassword').value;
+  if(!email||!password){gateMessage('E-posta ve şifreyi doldur.');return}
+  if(password.length<6){gateMessage('Şifre en az 6 karakter olmalı.');return}
+  $('gateSubmit').disabled=true;$('gateSubmit').textContent='Kontrol ediliyor…';$('gateStatus').classList.remove('show');
+  try{
+    if(kind==='signup'){
+      const res=await sb.auth.signUp({email,password});
+      if(res.error)throw res.error;
+      const user=res.data.user;if(!user)throw Error('Kayıt isteği oluşturulamadı.');
+      if(res.data.session){
+        const check=await checkApproval(user);
+        if(check.ok){await activateApprovedUser(user,true);notify('Hesabın onaylandı.');return}
+        await sb.auth.signOut().catch(()=>{});sbUser=null;setApprovedUI(null);
+        gateMessage(check.status==='rejected'?'Bu kayıt talebi reddedilmiş.':'Kayıt talebin ulaştı. Yönetici onayı bekleniyor.');
+      }else{gateMessage('Kayıt talebin oluşturuldu. Yönetici onayı bekleniyor.')}
+      return;
+    }
+    const res=await sb.auth.signInWithPassword({email,password});
+    if(res.error)throw res.error;
+    const user=res.data.user;const check=await checkApproval(user);
+    if(!check.ok){
+      sbUser=null;setApprovedUI(null);await sb.auth.signOut().catch(()=>{});
+      if(check.status==='pending')gateMessage('Kayıt talebin hâlâ onay bekliyor.');
+      else if(check.status==='rejected')gateMessage('Kayıt talebin reddedilmiş.');
+      else gateMessage('Kayıt talebi bulunamadı.');
+      return;
+    }
+    await activateApprovedUser(user,true);notify('Giriş yapıldı.');
+  }catch(e){gateMessage('İşlem başarısız: '+(e.message||'Bilinmeyen hata'))}
+  finally{$('gateSubmit').disabled=false;$('gateSubmit').textContent=gateMode==='signup'?'Kayıt talebi gönder':'Giriş yap'}
+}
+async function forgotPassword(){
+  if(!sb){if(!await setupSb())return}
+  const email=($('gateEmail').value||prompt('Şifre sıfırlama için e-posta:')||'').trim().toLowerCase();
+  if(!email){notify('E-posta gerekli.');return}
+  try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});if(error)throw error;notify('Şifre sıfırlama bağlantısı gönderildi.');logSession('Şifre sıfırlama istendi',email)}catch(e){notify('Hata: '+e.message)}
+}
+async function changePassword(){
+  const np=prompt('Yeni şifre (en az 6 karakter):');if(!np)return;if(np.length<6){notify('Şifre çok kısa.');return}
+  try{const {error}=await sb.auth.updateUser({password:np});if(error)throw error;notify('Şifre güncellendi.');logSession('Şifre değiştirildi')}catch(e){notify('Hata: '+e.message)}
+}
+
+async function enroll2FA(){
+  if(!sbUser){notify('Önce giriş yap.');return}
+  try{
+    const {data,error}=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'İş Takip 2FA'});
+    if(error)throw error;
+    $('tfaBody').innerHTML=`<p>Kimlik doğrulayıcı uygulamanda QR kodu okut.</p><div style="text-align:center"><img src="${data.totp.qr_code}" style="max-width:220px"></div><p class="mini">Gizli anahtar: <code>${data.totp.secret}</code></p><div><label>6 haneli kod</label><input id="tfaCode" maxlength="6"></div><div class="actions"><button class="primary" id="tfaVerifyBtn">Doğrula</button></div>`;
+    $('tfaModal').classList.add('open');
+    $('tfaVerifyBtn').onclick=async()=>{const code=$('tfaCode').value.trim();const ch=await sb.auth.mfa.challenge({factorId:data.id});if(ch.error){notify('Hata: '+ch.error.message);return}const v=await sb.auth.mfa.verify({factorId:data.id,challengeId:ch.data.id,code});if(v.error){notify('Kod doğrulanamadı: '+v.error.message);return}notify('2FA etkinleştirildi.');logSession('2FA etkinleştirildi');$('tfaModal').classList.remove('open')};
+  }catch(e){notify('2FA hatası: '+e.message)}
+}
+async function verify2FA(){
+  try{
+    const {data,error}=await sb.auth.mfa.getAuthenticatorAssuranceLevel();if(error)throw error;
+    if(data.currentLevel==='aal2'){notify('Zaten doğrulanmış.');return}
+    const {data:factors}=await sb.auth.mfa.listFactors();const totp=factors?.totp?.[0];if(!totp){notify('Önce 2FA kur.');return}
+    const ch=await sb.auth.mfa.challenge({factorId:totp.id});
+    $('tfaBody').innerHTML=`<div><label>Doğrulama kodu</label><input id="tfaCode" maxlength="6"></div><div class="actions"><button class="primary" id="tfaVerifyBtn">Doğrula</button></div>`;
+    $('tfaModal').classList.add('open');
+    $('tfaVerifyBtn').onclick=async()=>{const v=await sb.auth.mfa.verify({factorId:totp.id,challengeId:ch.data.id,code:$('tfaCode').value.trim()});if(v.error){notify('Hata: '+v.error.message);return}notify('Doğrulandı.');$('tfaModal').classList.remove('open')};
+  }catch(e){notify('Hata: '+e.message)}
+}
+
+async function renderAdminPanel(){
+  if(myRole!=='admin')return;
+  try{
+    const {data:rows,error}=await sb.from('work_tracker_access_requests').select('user_id,email,status,role,first_name,last_name,phone');
+    if(error)throw error;
+    $('roleList').innerHTML=rows.map(r=>{const name=[r.first_name,r.last_name].filter(Boolean).join(' ').trim();return `<div class="rolerow"><div><b>${esc(name||r.email||r.user_id)}</b><div class="mini">${esc(r.email||'')}${r.phone?' · '+esc(r.phone):''} · ${esc(r.status)}</div></div><select data-role-for="${r.user_id}"><option value="user"${r.role==='user'?' selected':''}>user</option><option value="viewer"${r.role==='viewer'?' selected':''}>viewer</option><option value="admin"${r.role==='admin'?' selected':''}>admin</option></select><button data-role-save="${r.user_id}">Kaydet</button></div>`}).join('');
+  }catch(e){$('roleList').innerHTML='<div class="empty">Rol tablosu okunamadı: '+esc(e.message)+'</div>'}
+}
+async function saveRole(userId){
+  const el=document.querySelector(`[data-role-for="${userId}"]`);if(!el)return;
+  try{const {error}=await sb.from('work_tracker_access_requests').update({role:el.value}).eq('user_id',userId);if(error)throw error;notify('Rol güncellendi.');logSession('Rol güncellendi',userId+' → '+el.value)}catch(e){notify('Hata: '+e.message)}
+}
+
+async function loadComments(taskId){
+  try{const {data:rows,error}=await sb.from('work_tracker_comments').select('id,user_id,body,created_at,author_email').eq('task_id',taskId).order('created_at',{ascending:true}).limit(100);if(error)throw error;currentComments=rows||[]}catch(e){currentComments=[]}
+  renderComments();
+}
+function renderComments(){const el=$('commentsList');if(!el)return;el.innerHTML=currentComments.length?currentComments.map(c=>`<div class="comment"><div class="cmeta">${esc(c.author_email||'Kullanıcı')} · ${new Date(c.created_at).toLocaleString('tr-TR')}</div>${esc(c.body)}</div>`).join(''):'<div class="mini">Henüz yorum yok.</div>'}
+async function addComment(){
+  const taskId=$('taskId').value;const body=$('commentInput').value.trim();if(!body||!taskId)return;
+  try{const {error}=await sb.from('work_tracker_comments').insert({task_id:taskId,user_id:sbUser.id,body,author_email:sbUser.email});if(error)throw error;$('commentInput').value='';await loadComments(taskId);notify('Yorum eklendi.')}catch(e){notify('Hata: '+e.message)}
+}
+
+async function listFiles(taskId){
+  try{const {data:rows,error}=await sb.storage.from('work-tracker-files').list(taskId,{limit:100});if(error)throw error;currentFiles=rows||[]}catch(e){currentFiles=[]}
+  renderFiles();
+}
+function renderFiles(){const el=$('filesList');if(!el)return;el.innerHTML=currentFiles.length?currentFiles.map(f=>`<div class="filerow"><span>📎 ${esc(f.name)}</span><span class="actions"><button data-dl-file="${esc(f.name)}">İndir</button><button class="danger" data-del-file="${esc(f.name)}">Sil</button></span></div>`).join(''):'<div class="mini">Dosya yok.</div>'}
+async function uploadFile(file){
+  const taskId=$('taskId').value;if(!taskId)return;
+  try{const path=taskId+'/'+Date.now()+'_'+file.name;const {error}=await sb.storage.from('work-tracker-files').upload(path,file,{upsert:false});if(error)throw error;await listFiles(taskId);notify('Dosya yüklendi.')}catch(e){notify('Hata: '+e.message)}
+}
+async function downloadFile(name){
+  const taskId=$('taskId').value;
+  const {data,error}=await sb.storage.from('work-tracker-files').download(taskId+'/'+name);
+  if(error){notify('Hata: '+error.message);return}
+  const url=URL.createObjectURL(data);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function deleteFile(name){
+  if(!confirm('Dosya silinsin mi?'))return;
+  const taskId=$('taskId').value;
+  const {error}=await sb.storage.from('work-tracker-files').remove([taskId+'/'+name]);
+  if(error){notify('Hata: '+error.message);return}
+  await listFiles(taskId);notify('Dosya silindi.');
+}
+
+function computeReminders(t){
+  const r={week:false,threeDay:false,lastDay:false,overdue:false};
+  if(!t.due||t.status==='done')return r;
+  const d=dayDiff(today(),t.due);
+  if(d===7)r.week=true;if(d===3)r.threeDay=true;if(d===0)r.lastDay=true;if(d<0)r.overdue=true;
+  return r;
+}
+function checkReminders(){
+  const list=[];
+  data.tasks.filter(t=>!t.archived).forEach(t=>{t.remindersSent=t.remindersSent||{};const r=computeReminders(t);Object.keys(r).forEach(k=>{if(r[k]&&!t.remindersSent[k])list.push(`${t.title} → ${k==='week'?'1 hafta kaldı':k==='threeDay'?'3 gün kaldı':k==='lastDay'?'son gün':'gecikti'}`)})});
+  $('reminderLog').innerHTML=list.length?list.map(x=>`<div class="quickrow"><span>${esc(x)}</span><span class="pill orange">bekliyor</span></div>`).join(''):'<div class="empty">Şu an tetiklenecek hatırlatma yok.</div>';
+  notify(list.length+' hatırlatma kuyruğa alındı.');
+}
+
+async function pullRemote(){
+  if(!sb||!sbUser||!activeWorkspaceId)return;
+  try{
+    const {data:row,error}=await sb.from('work_tracker_workspace_data').select('data,updated_at').eq('workspace_id',activeWorkspaceId).maybeSingle();
+    if(error)throw error;
+    if(row?.data){
+      const remote=row.data;
+      ['tasks','templates','history','trash','undoStack','archive','sessionLog'].forEach(k=>{if(!Array.isArray(remote[k]))remote[k]=[]});
+      remote.settings=remote.settings||{density:'normal',lang:'tr'};
+      remote.tasks=remote.tasks.map(t=>({...t,tags:Array.isArray(t.tags)?t.tags:[],dependencies:Array.isArray(t.dependencies)?t.dependencies:[],issues:Array.isArray(t.issues)?t.issues:[],subtasks:Array.isArray(t.subtasks)?t.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}));
+      data=mergeData(data,remote);
+    }else{
+      const ws=activeWs();
+      if(ws&&ws.type==='personal'&&ws.owner_id===sbUser.id){
+        try{const {data:legacy}=await sb.from('work_tracker_data').select('data').eq('user_id',sbUser.id).maybeSingle();if(legacy?.data?.tasks?.length){data=mergeData(data,legacy.data);return}}catch(e){}
+      }
+      data=freshUserData();
+    }
+  }catch(e){setAuthStatus('Veri okunamadı: '+e.message);throw e}
+}
+let syncTimer=null,syncPending=false;
+function scheduleSync(){if(!sb||!sbUser||!activeWorkspaceId)return;if(syncing){syncPending=true;return}clearTimeout(syncTimer);syncTimer=setTimeout(pushRemote,700)}
+async function pushRemote(){
+  if(!sb||!sbUser||!activeWorkspaceId||syncing)return;syncing=true;
+  try{
+    data.updatedAt=new Date().toISOString();
+    const {error}=await sb.from('work_tracker_workspace_data').upsert({workspace_id:activeWorkspaceId,data,updated_at:data.updatedAt},{onConflict:'workspace_id'});
+    if(error)throw error;
+    setAuthStatus('Senkronize edildi · '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){setAuthStatus('Senkronizasyon hatası: '+e.message)}
+  finally{syncing=false;if(syncPending){syncPending=false;scheduleSync()}}
+}
+async function signOut(){
+  logSession('Oturum kapatıldı');
+  if(sb)await sb.auth.signOut().catch(()=>{});
+  sbUser=null;approvedUserId=null;myRole='user';setApprovedUI(null);setGateMode('signin');
+  gateMessage('Güvenli çıkış yapıldı.');render();
+}
+
+/* ============= BIND ============= */
+function bind(){
+  document.querySelectorAll('#nav button, #bottomnav button').forEach(b=>b.addEventListener('click',()=>goto(b.dataset.view)));
+  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>goto(b.dataset.goto)));
+  $('newTaskBtn').onclick=$('newTaskBtn2').onclick=()=>openTask();
+  $('themeBtn').onclick=$('themeBtn2').onclick=()=>{data.theme=data.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=data.theme;savePrefs();persist();render()};
+  $('densityBtn').onclick=()=>{data.settings.density=data.settings.density==='compact'?'normal':'compact';document.documentElement.classList.toggle('density-compact',data.settings.density==='compact');savePrefs();persist();render()};
+  $('langBtn').onclick=()=>{data.settings.lang=data.settings.lang==='en'?'tr':'en';savePrefs();persist();render()};
+  $('exportBtn').onclick=$('reportExport').onclick=exportCSV;
+  $('exportJson').onclick=saveJSON;
+  $('importJson').onclick=()=>$('importFile').click();
+  $('importFile').onchange=e=>e.target.files[0]&&loadJSON(e.target.files[0]);
+  ['searchTasks','statusFilter','sortTasks','categoryFilter','lateFilter','assigneeFilter'].forEach(id=>$(id).addEventListener(id==='searchTasks'?'input':'change',renderAllTasks));
+  $('reportFrom').onchange=renderReports;$('reportTo').onchange=renderReports;$('reportAssignee').onchange=renderReports;
+  $('addIssue').onclick=()=>{editingIssues.push({id:uid(),startDate:today(),type:'Operasyonel',priority:'medium',description:'',resolvedAt:null,resolutionNote:''});renderIssueEditor()};
+  $('saveDailyNote').onclick=()=>{data.dailyNotes[today()]=$('dailyNote').value;log('Günlük not kaydedildi',{title:today()});persist();render();notify('Not kaydedildi.')};
+  $('prevMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()-1);renderCalendar()};
+  $('nextMonth').onclick=()=>{calDate.setMonth(calDate.getMonth()+1);renderCalendar()};
+  $('calendarGrid').onclick=e=>{const c=e.target.closest('[data-calday]');if(c)openTask(null,{due:c.dataset.calday})};
+  $('addSubtask').onclick=addSub;
+  $('newSubtask').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addSub()}};
+  $('ganttShowDone').onchange=renderGantt;
+  $('printReport').onclick=()=>window.print();
+  $('checkReminders').onclick=checkReminders;
+  $('showUndoList').onclick=()=>{$('undoList').innerHTML=(data.undoStack||[]).length?[...data.undoStack].reverse().map(x=>`<div class="quickrow"><div><b>${esc(x.label)}</b><div class="mini">${new Date(x.at).toLocaleString('tr-TR')}</div></div><button data-undo-to="${x.id}">Buraya dön</button></div>`).join(''):'<div class="empty">Kayıt yok.</div>';$('undoModal').classList.add('open')};
+  $('clearSessionLog').onclick=()=>{if(confirm('Log temizlensin mi?')){data.sessionLog=[];persist();renderHistory()}};
+  $('changePassword').onclick=changePassword;
+  $('enroll2FA').onclick=enroll2FA;
+  $('verify2FA').onclick=verify2FA;
+  $('focusNextBtn').onclick=()=>{focusIndex++;renderFocus()};
+  $('wsSwitcherBtn').onclick=(e)=>{e.stopPropagation();toggleWsMenu()};
+  $('profModalSave').onclick=saveProfileFromModal;
+  $('profileSaveBtn').onclick=saveProfileFromSettings;
+
+  $('taskForm').onsubmit=e=>{
+    e.preventDefault();
+    const id=$('taskId').value,t=data.tasks.find(x=>x.id===id),status=$('taskStatus').value;
+    const subtasks=editingSubs.map(s=>({...s,done:subStatus(s)==='done'}));
+    const obj={...(t||{}),id:id||uid(),title:$('taskTitle').value.trim(),category:$('taskCategory').value.trim(),assignee:$('taskAssignee').value.trim(),priority:$('taskPriority').value,status,startDate:$('taskStart').value,due:$('taskDue').value,tags:[...new Set($('taskTags').value.split(',').map(x=>x.trim()).filter(Boolean))],dependencies:selectedValues($('taskDependencies')),issues:editingIssues.filter(i=>i.startDate&&i.description.trim()).map(i=>({...i})),repeat:$('taskRepeat').value,desc:$('taskDesc').value.trim(),blockReason:$('taskBlockReason').value.trim(),subtasks,createdAt:t?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+    if(obj.status==='todo'&&obj.subtasks.some(s=>subStatus(s)!=='todo'))obj.status='doing';
+    if(obj.status==='done'){obj.completedAt=t?.completedAt||new Date().toISOString();obj.subtasks=obj.subtasks.map(s=>({...s,done:true,status:'done'}))}else obj.completedAt=null;
+    saveTask(obj,t?'Görev güncellendi':'Görev oluşturuldu');
+    $('taskModal').classList.remove('open');notify('Görev kaydedildi.');
+  };
+  $('deleteTaskBtn').onclick=()=>{const id=$('taskId').value,t=data.tasks.find(x=>x.id===id);if(t&&confirm('“'+t.title+'” çöp kutusuna taşınsın mı?')){moveToTrash(id);$('taskModal').classList.remove('open')}};
+  $('uploadFileBtn').onclick=()=>$('fileInput').click();
+  $('fileInput').onchange=e=>{if(e.target.files[0])uploadFile(e.target.files[0]);e.target.value=''};
+  $('addCommentBtn').onclick=addComment;
+  $('commentInput').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addComment()}};
+
+  $('bulkDone').onclick=()=>bulkUpdate('done');
+  $('bulkDoing').onclick=()=>bulkUpdate('doing');
+  $('bulkArchive').onclick=bulkArchive;
+  $('bulkDelete').onclick=bulkTrash;
+  $('bulkClear').onclick=()=>{selectedTasks.clear();renderAllTasks()};
+  $('undoHistoryBtn').onclick=undoLast;
+  $('emptyTrash').onclick=()=>{if(confirm('Çöp kutusu kalıcı olarak silinsin mi?')){data.trash=[];persist();renderHistory()}};
+  $('clearHistory').onclick=()=>{if(confirm('Görev geçmişi temizlensin mi?')){data.history=[];persist();render()}};
+
+  $('templateForm').onsubmit=e=>{
+    e.preventDefault();
+    const t={id:uid(),title:$('templateTitle').value.trim(),category:$('templateCategory').value.trim(),priority:$('templatePriority').value,desc:$('templateDesc').value.trim(),subtasks:$('templateSubs').value.split('\n').map(x=>x.trim()).filter(Boolean).map((title,i)=>({id:uid(),title,done:false,status:'todo',order:i}))};
+    data.templates.push(t);log('Şablon oluşturuldu',t);persist();render();$('templateModal').classList.remove('open');$('templateForm').reset();notify('Şablon kaydedildi.');
+  };
+  $('newTemplateBtn').onclick=()=>$('templateModal').classList.add('open');
+  $('settingsSignOut').onclick=signOut;
+
+  $('gateForm').onsubmit=e=>{e.preventDefault();authAction(gateMode)};
+  $('gateRegister').onclick=()=>setGateMode('signup');
+  $('gateMode').onclick=()=>setGateMode(gateMode==='signup'?'signin':'signup');
+  $('gateForgot').onclick=forgotPassword;
+  $('gateTheme').onclick=()=>{data.theme=data.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=data.theme;$('app').dataset.theme=data.theme;savePrefs()};
+
+  $('pomoStart').onclick=startPomo;$('pomoPause').onclick=pausePomo;$('pomoReset').onclick=resetPomo;
+
+  document.body.addEventListener('click',e=>{
+    const b=e.target.closest('button');
+    if(b){
+      if(b.dataset.close){
+        if(profileForced&&b.dataset.close==='profileModal')return;
+        $(b.dataset.close).classList.remove('open');
+      }
+      if(b.dataset.edit)openTask(b.dataset.edit);
+      if(b.dataset.trash)moveToTrash(b.dataset.trash);
+      if(b.dataset.archive)archiveTask(b.dataset.archive);
+      if(b.dataset.unarchive)unarchiveTask(b.dataset.unarchive);
+      if(b.dataset.archDel){if(confirm('Arşivden kalıcı silinsin mi?')){data.archive=data.archive.filter(x=>x.id!==b.dataset.archDel);persist();renderHistory()}}
+      if(b.dataset.restore){const t=(data.trash||[]).find(x=>x.id===b.dataset.restore);if(t){snapshot('Çöp kutusundan geri yükleme');data.tasks.unshift({...t,deletedAt:undefined,updatedAt:new Date().toISOString()});data.trash=data.trash.filter(x=>x.id!==b.dataset.restore);log('Görev geri yüklendi',t);persist();render()}}
+      if(b.dataset.purge){if(confirm('Kalıcı olarak silinsin mi?')){data.trash=data.trash.filter(x=>x.id!==b.dataset.purge);persist();renderHistory()}}
+      if(b.dataset.issueDel){editingIssues.splice(Number(b.dataset.issueDel),1);renderIssueEditor()}
+      if(b.dataset.useTemplate){const t=data.templates.find(x=>x.id===b.dataset.useTemplate);if(t)openTask(null,{title:t.title,category:t.category,priority:t.priority,desc:t.desc,subtasks:(t.subtasks||[]).map(s=>({...s,id:uid(),done:false,status:'todo'}))})}
+      if(b.dataset.delTemplate){if(confirm('Şablon silinsin mi?')){data.templates=data.templates.filter(t=>t.id!==b.dataset.delTemplate);persist();render()}}
+      if(b.dataset.quicksubBtn){const inp=document.querySelector(`[data-quicksub="${b.dataset.quicksubBtn}"]`);if(inp&&inp.value.trim())quickAddSub(b.dataset.quicksubBtn,inp.value.trim())}
+      if(b.dataset.subdoneall)completeAllSubs(b.dataset.subdoneall);
+      if(b.dataset.subdelCard){const[taskId,subId]=b.dataset.subdelCard.split(':');removeSubOnCard(taskId,subId)}
+      if(b.dataset.submove){const[taskId,subId,dir]=b.dataset.submove.split(':');moveSubOnCard(taskId,subId,Number(dir))}
+      if(b.dataset.roleSave)saveRole(b.dataset.roleSave);
+      if(b.dataset.undoTo)restoreToUndo(b.dataset.undoTo);
+      if(b.dataset.dlFile)downloadFile(b.dataset.dlFile);
+      if(b.dataset.delFile)deleteFile(b.dataset.delFile);
+      if(b.dataset.invAccept)respondInvitation(b.dataset.invAccept,true);
+      if(b.dataset.invDecline)respondInvitation(b.dataset.invDecline,false);
+      if(b.dataset.wsInvCancel)cancelWorkspaceInvitation(b.dataset.wsInvCancel);
+    }
+    const sw=e.target.closest('[data-ws-switch]');
+    if(sw){switchWorkspace(sw.dataset.wsSwitch);closeWsMenu();return}
+    if(e.target.closest('#wsNewTeam')){closeWsMenu();createTeamWorkspace();return}
+    if(e.target.closest('#wsOpenInvitations')){closeWsMenu();goto('settings');setTimeout(()=>{const el=$('invitationsPanel');if(el)el.scrollIntoView({behavior:'smooth'})},50);return}
+    if(e.target.closest('#wsRenameBtn')){renameActiveWorkspace();return}
+    if(e.target.closest('#wsInviteBtn')){inviteMember();return}
+    if(e.target.closest('#wsDeleteBtn')){deleteActiveTeam();return}
+    if(e.target.closest('#wsLeaveBtn')){leaveActiveTeam();return}
+    const rm=e.target.closest('[data-wsm-remove]');
+    if(rm){removeMember(rm.dataset.wsmRemove);return}
+    if(!e.target.closest('.ws-switcher'))closeWsMenu();
+  });
+
+  document.body.addEventListener('keydown',e=>{
+    if(e.target.matches('[data-quicksub]')&&e.key==='Enter'){e.preventDefault();const id=e.target.dataset.quicksub;if(e.target.value.trim())quickAddSub(id,e.target.value.trim())}
+  });
+
+  document.body.addEventListener('change',e=>{
+    const el=e.target;
+    if(el.dataset.complete)completeTask(el.dataset.complete,el.checked);
+    if(el.dataset.selectTask!==undefined){if(el.checked)selectedTasks.add(el.dataset.selectTask);else selectedTasks.delete(el.dataset.selectTask);$('selectedCount').textContent=selectedTasks.size+' görev seçildi'}
+    if(el.dataset.issueResolved!==undefined){const i=editingIssues[Number(el.dataset.issueResolved)];if(i){i.resolvedAt=el.checked?new Date().toISOString():null;renderIssueEditor()}}
+    if(el.dataset.editorSubIndex!==undefined){const s=editingSubs[Number(el.dataset.editorSubIndex)];if(s){s.status=el.value;s.done=el.value==='done'}}
+    if(el.dataset.cardSub!==undefined){const[taskId,subId]=el.dataset.cardSub.split(':');setSubStatus(taskId,subId,el.value)}
+    if(el.dataset.cardIssue!==undefined){
+      const[taskId,issueId]=el.dataset.cardIssue.split(':');
+      const t=data.tasks.find(x=>x.id===taskId);if(t){const i=(t.issues||[]).find(x=>x.id===issueId);if(i){i.resolvedAt=el.checked?new Date().toISOString():null;t.updatedAt=new Date().toISOString();log(el.checked?'Problem çözüldü':'Problem yeniden açıldı',t,i.description||'');persist();render()}}
+    }
+    if(el.dataset.wsmRole){changeMemberRole(el.dataset.wsmRole,el.value)}
+  });
+  document.body.addEventListener('input',e=>{
+    const el=e.target;
+    if(el.dataset.subtitle!==undefined)editingSubs[Number(el.dataset.subtitle)].title=el.value;
+    if(el.dataset.subdue!==undefined)editingSubs[Number(el.dataset.subdue)].due=el.value;
+    if(el.dataset.issueDate!==undefined)editingIssues[Number(el.dataset.issueDate)].startDate=el.value;
+    if(el.dataset.issueType!==undefined)editingIssues[Number(el.dataset.issueType)].type=el.value;
+    if(el.dataset.issueDesc!==undefined)editingIssues[Number(el.dataset.issueDesc)].description=el.value;
+    if(el.dataset.issuePriority!==undefined)editingIssues[Number(el.dataset.issuePriority)].priority=el.value;
+    if(el.dataset.issueResnote!==undefined)editingIssues[Number(el.dataset.issueResnote)].resolutionNote=el.value;
+  });
+  document.body.addEventListener('click',e=>{
+    const el=e.target.closest('[data-subdel]');
+    if(el){editingSubs.splice(Number(el.dataset.subdel),1);editingSubs.forEach((s,i)=>s.order=i);renderSubEditor();return}
+    const mv=e.target.closest('[data-submove-editor]');
+    if(mv){const[i,dir]=mv.dataset.submoveEditor.split(':').map(Number);moveSub(editingSubs,i,dir);renderSubEditor()}
+  });
+
+  document.body.addEventListener('dragstart',e=>{const card=e.target.closest('[data-drag-task]');if(card)e.dataTransfer.setData('text/plain',card.dataset.dragTask)});
+  document.body.addEventListener('dragover',e=>{const col=e.target.closest('[data-drop-status]');if(col)e.preventDefault()});
+  document.body.addEventListener('drop',e=>{
+    const col=e.target.closest('[data-drop-status]');if(!col)return;e.preventDefault();
+    const id=e.dataTransfer.getData('text/plain'),t=data.tasks.find(x=>x.id===id);
+    if(!t||t.status===col.dataset.dropStatus)return;
+    if(['doing','done'].includes(col.dataset.dropStatus)){
+      const waiting=(t.dependencies||[]).map(depId=>data.tasks.find(x=>x.id===depId)).filter(x=>x&&x.status!=='done');
+      if(waiting.length){notify('Önce bağımlı görevler: '+waiting.map(x=>x.title).join(', '));return}
+    }
+    snapshot('Kanban durum değişikliği');t.status=col.dataset.dropStatus;t.updatedAt=new Date().toISOString();
+    if(t.status==='done'){t.completedAt=new Date().toISOString();if(t.subtasks)t.subtasks.forEach(s=>{s.done=true;s.status='done'})}else t.completedAt=null;
+    log('Kanban üzerinden durum değişti',t,S(t.status));persist();render();
+  });
+
+  document.querySelectorAll('.modalback').forEach(m=>m.addEventListener('click',e=>{
+    if(e.target===m){
+      if(profileForced&&m.id==='profileModal')return;
+      m.classList.remove('open');
+    }
+  }));
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      const open=document.querySelector('.modalback.open');
+      if(open){
+        if(profileForced&&open.id==='profileModal')return;
+        open.classList.remove('open');
+      }else closeWsMenu();
+    }
+    const typing=['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName);
+    if(!typing&&!document.querySelector('.modalback.open')){
+      if(e.key==='n'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openTask()}
+      if(e.key==='/'){e.preventDefault();goto('tasks');setTimeout(()=>$('searchTasks').focus(),0)}
+      if(e.key==='g'){window.__gPressed=Date.now()}
+      if(e.key==='t'&&window.__gPressed&&Date.now()-window.__gPressed<800){goto('tasks');window.__gPressed=0}
+      if(e.key==='d'&&window.__gPressed&&Date.now()-window.__gPressed<800){goto('dashboard');window.__gPressed=0}
+    }
+  });
+}
+
+async function enforceSessionLimit(){
+  if(!sb)return true;
+  const started=Number(sessionStorage.getItem(SESSION_STARTED_KEY)||0);
+  if(started&&Date.now()-started>=MAX_SESSION_MS){
+    await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);
+    sbUser=null;setApprovedUI(null);setGateMode('signin');gateMessage('13 saatlik oturum süresi doldu.');return false;
+  }
+  return true;
+}
+
+async function init(){
+  load();
+  try{bind();render();}catch(err){console.error('Başlatma hatası:',err)}
+  setGateMode('signin');
+  document.body.classList.remove('is-approved');
+  try{logSession('Uygulama açıldı')}catch(e){}
+
+  let resolved=false;
+  const finishAuth=()=>{if(resolved)return;resolved=true;document.body.classList.remove('auth-checking')};
+  const safetyTimer=setTimeout(finishAuth,5000);
+
+  try{
+    const configured=await setupSb();
+    if(configured){
+      try{
+        const {data:sessionData,error:sessionError}=await sb.auth.getSession();
+        if(sessionError)throw sessionError;
+        if(sessionData.session?.user){
+          if(!sessionStorage.getItem(SESSION_STARTED_KEY))sessionStorage.setItem(SESSION_STARTED_KEY,String(Date.now()));
+          if(await enforceSessionLimit()){
+            const user=sessionData.session.user;
+            const check=await checkApproval(user);
+            if(check.ok){await activateApprovedUser(user)}   /* sayfa yenileme → son çalışma alanı */
+            else{setApprovedUI(null);await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);gateMessage(check.status==='pending'?'Kayıt talebin onay bekliyor.':'Erişim izni yok.')}
+          }
+        }
+      }catch(e){gateMessage('Oturum kontrol edilemedi: '+e.message)}
+      sb.auth.onAuthStateChange((event,session)=>{
+        if(event==='SIGNED_OUT'){sessionStorage.removeItem(SESSION_STARTED_KEY);sbUser=null;approvedUserId=null;setApprovedUI(null)}
+        else if(event==='SIGNED_IN'&&session){if(!sessionStorage.getItem(SESSION_STARTED_KEY))sessionStorage.setItem(SESSION_STARTED_KEY,String(Date.now()))}
+        else if(session?.user&&session.user.id!==approvedUserId){
+          setTimeout(async()=>{
+            try{
+              if(!(await enforceSessionLimit()))return;
+              const check=await checkApproval(session.user);
+              if(check.ok){await activateApprovedUser(session.user)}   /* oturum yenilendi → son çalışma alanı */
+              else{sbUser=null;setApprovedUI(null);await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);gateMessage('Bu hesap için erişim yok.')}
+            }catch(e){setApprovedUI(null);gateMessage('Erişim kontrolü başarısız: '+e.message)}
+          },0);
+        }
+      });
+    }
+  }catch(e){gateMessage('Supabase başlatılamadı: '+(e.message||e))}
+
+  clearTimeout(safetyTimer);
+  finishAuth();
+  setInterval(async()=>{if(sbUser)await enforceSessionLimit()},60000);
+}
+init();
+})();
+</script>
+</body>
+</html>
