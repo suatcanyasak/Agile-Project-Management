@@ -2,8 +2,15 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Agile Project Management</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5368e8">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Agile PM">
+<meta name="mobile-web-app-capable" content="yes">
 <script>
 try{
   var __p=JSON.parse(localStorage.getItem('work-tracker-prefs')||'{}');
@@ -17,9 +24,9 @@ try{
 [data-theme="dark"]{--bg:#111522;--panel:#1a2030;--text:#edf1fa;--muted:#a0abc0;--line:#30394d;--accent:#8290ff;--accent2:#2b335b;--good:#5dd5a7;--warn:#ffc36c;--bad:#ff7c89;--shadow:0 8px 28px #0003}
 
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;overscroll-behavior-y:contain}
 button,input,select,textarea{font:inherit}
-button{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 12px}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 12px;touch-action:manipulation}
 button:hover{border-color:var(--accent)}
 button.primary{background:var(--accent);color:white;border-color:var(--accent)}
 button.danger{color:var(--bad)}
@@ -215,41 +222,93 @@ html.density-compact .tasktitle{font-size:13px}
   .reportgrid{grid-template-columns:repeat(3,1fr)}
 }
 
+/* ===================== MOBİL / RESPONSIVE ===================== */
 @media(max-width:1100px){.kanban{grid-template-columns:repeat(4,minmax(210px,1fr))}}
+
 @media(max-width:950px){
   .app{grid-template-columns:1fr}
   .side{display:none}
-  .main{padding-top:17px;padding-bottom:78px}
-  .bottomnav{display:flex}
+  .main{padding:14px 12px 96px}
   .layout{grid-template-columns:1fr}
-  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .top{align-items:flex-start;flex-direction:column}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .top{flex-direction:column;align-items:stretch;gap:10px}
+  .top h1{font-size:22px}
   .actions{width:100%}
-  .actions button{flex:1}
-  .calendar{gap:3px}
-  .daycell{min-height:75px;padding:4px}
-  .calitem{font-size:9px;padding:3px}
-}
-@media(max-width:560px){
-  .filters{grid-template-columns:1fr 1fr}
+  .actions button{flex:1;min-width:0;padding:11px 10px}
+  .calendar{gap:4px}
+  .daycell{min-height:82px;padding:6px}
+  .calitem{font-size:10px;padding:4px}
+  .panel{padding:14px;border-radius:14px}
+  .panelhead h2{font-size:15px}
+  .filters{grid-template-columns:1fr 1fr;gap:8px}
   .filters input{grid-column:1/-1}
-  .task{grid-template-columns:auto auto minmax(0,1fr)}
-  .taskbuttons{grid-column:3;flex-wrap:wrap}
-  .formgrid{grid-template-columns:1fr}
+  .filters select{padding:10px}
+  input,select,textarea{padding:12px;font-size:16px}
+  button{padding:11px 13px}
+  .task{padding:12px;gap:10px}
+  .taskbuttons button{padding:8px 10px;font-size:12px}
+  .modal{padding:16px;border-radius:16px;width:100%;max-height:94vh}
+  .modalhead h2{font-size:17px}
+  .formgrid{grid-template-columns:1fr;gap:10px}
   .field.full{grid-column:auto}
+  .kanban{grid-template-columns:repeat(4,minmax(84vw,1fr))}
+  .kancol{min-height:180px}
   .reportgrid{grid-template-columns:1fr 1fr}
-  .stat{padding:12px}
-  .stat .num{font-size:23px}
-  .panel{padding:13px}
-  .weekday{font-size:9px}
-  .daycell{min-height:62px}
-  .daynum{font-size:10px}
-  .calitem{font-size:8px}
-  .calendar{gap:2px}
-  .issuegrid{grid-template-columns:1fr}
   .reportfilters{grid-template-columns:1fr}
+  .ganttwrap{padding:6px}
+  .focuswrap{max-width:100%}
+  .focustimer{font-size:44px}
+  .ws-menu{min-width:0;left:0;right:auto;width:min(85vw,320px)}
+
+  /* Alt navigasyon: yatay kaydırılabilir, güvenli alan destekli */
+  .bottomnav{
+    display:flex;
+    overflow-x:auto;
+    justify-content:flex-start;
+    gap:2px;
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    box-shadow:0 -6px 20px #00000010;
+    scrollbar-width:none;
+  }
+  .bottomnav::-webkit-scrollbar{display:none}
+  .bottomnav button{
+    font-size:11px;
+    padding:8px 10px;
+    border-radius:10px;
+    min-width:60px;
+    flex:0 0 auto;
+  }
+  .bottomnav button.active{background:var(--accent2)}
 }
 
+@media(max-width:560px){
+  .stats{grid-template-columns:1fr 1fr}
+  .stat{padding:12px}
+  .stat .num{font-size:22px}
+  .reportgrid{grid-template-columns:1fr}
+  .issuegrid{grid-template-columns:1fr}
+  .calendar{gap:2px}
+  .daycell{min-height:64px;padding:4px;border-radius:10px}
+  .weekday{font-size:9px}
+  .daynum{font-size:10px}
+  .calitem{font-size:9px;padding:3px}
+  .top h1{font-size:20px}
+  .eyebrow{font-size:11px}
+  .task{grid-template-columns:auto auto minmax(0,1fr)}
+  .taskbuttons{grid-column:3;flex-wrap:wrap}
+}
+
+/* Çentikli telefonlar için güvenli alan */
+@supports (padding:max(0px)){
+  .bottomnav{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .main{padding-bottom:max(96px,calc(96px + env(safe-area-inset-bottom)))}
+}
+
+/* PWA kurulum çubuğu */
+#pwaBar{animation:pwaSlide .35s ease}
+@keyframes pwaSlide{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ===================== AUTH ===================== */
 #app{display:none!important}
 body.is-approved #app{display:grid!important}
 #authLoading{display:none}
@@ -575,6 +634,9 @@ body.auth-checking #loginGate{display:none!important}
  <button data-view="focus">◎<span>Odak</span></button>
  <button data-view="tasks">☷<span>Görev</span></button>
  <button data-view="kanban">▦<span>Kanban</span></button>
+ <button data-view="calendar">🗓<span>Takvim</span></button>
+ <button data-view="timeline">≡<span>Zaman</span></button>
+ <button data-view="reports">▤<span>Rapor</span></button>
  <button data-view="settings">⚙<span>Ayarlar</span><span class="nav-badge" id="settingsBadgeM" style="display:none"></span></button>
 </nav>
 
@@ -1431,12 +1493,10 @@ async function activateApprovedUser(user,forcePersonal){
     await loadWorkspaces();
     const prefs=loadPrefs();
     let target=null;
-    /* Yeni giriş yapıldıysa kişisel alanı zorla */
     if(forcePersonal){
       const p=workspaces.find(w=>w.type==='personal'&&w.owner_id===user.id);
       if(p)target=p.id;
     }
-    /* Aksi halde (sayfa yenileme) son kullanılan çalışma alanını koru */
     if(!target&&prefs.activeWorkspaceId&&workspaces.some(w=>w.id===prefs.activeWorkspaceId))target=prefs.activeWorkspaceId;
     if(!target){const p=workspaces.find(w=>w.type==='personal'&&w.owner_id===user.id);if(p)target=p.id}
     if(!target&&workspaces.length)target=workspaces[0].id;
@@ -1817,6 +1877,26 @@ function bind(){
       if(e.key==='d'&&window.__gPressed&&Date.now()-window.__gPressed<800){goto('dashboard');window.__gPressed=0}
     }
   });
+
+  /* ---------- PWA ---------- */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('sw.js').catch(err=>console.warn('SW kayıt hatası:',err));
+    });
+  }
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',(e)=>{
+    e.preventDefault();deferredPrompt=e;
+    if(document.getElementById('pwaBar'))return;
+    const bar=document.createElement('div');
+    bar.id='pwaBar';
+    bar.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;z-index:15;box-shadow:var(--shadow)';
+    bar.innerHTML='<div style="flex:1;font-size:13px"><b>Uygulamayı yükle</b><div class="mini">Telefonuna kur, tam ekran kullan.</div></div><button id="pwaInstall" class="primary">Yükle</button><button id="pwaClose" class="ghost">✕</button>';
+    document.body.appendChild(bar);
+    bar.querySelector('#pwaInstall').onclick=async()=>{deferredPrompt.prompt();await deferredPrompt.userChoice;bar.remove();deferredPrompt=null};
+    bar.querySelector('#pwaClose').onclick=()=>bar.remove();
+  });
+  window.addEventListener('appinstalled',()=>{const b=document.getElementById('pwaBar');if(b)b.remove();notify('Uygulama yüklendi.')});
 }
 
 async function enforceSessionLimit(){
@@ -1851,7 +1931,7 @@ async function init(){
           if(await enforceSessionLimit()){
             const user=sessionData.session.user;
             const check=await checkApproval(user);
-            if(check.ok){await activateApprovedUser(user)}   /* sayfa yenileme → son çalışma alanı */
+            if(check.ok){await activateApprovedUser(user)}
             else{setApprovedUI(null);await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);gateMessage(check.status==='pending'?'Kayıt talebin onay bekliyor.':'Erişim izni yok.')}
           }
         }
@@ -1864,7 +1944,7 @@ async function init(){
             try{
               if(!(await enforceSessionLimit()))return;
               const check=await checkApproval(session.user);
-              if(check.ok){await activateApprovedUser(session.user)}   /* oturum yenilendi → son çalışma alanı */
+              if(check.ok){await activateApprovedUser(session.user)}
               else{sbUser=null;setApprovedUI(null);await sb.auth.signOut().catch(()=>{});sessionStorage.removeItem(SESSION_STARTED_KEY);gateMessage('Bu hesap için erişim yok.')}
             }catch(e){setApprovedUI(null);gateMessage('Erişim kontrolü başarısız: '+e.message)}
           },0);
