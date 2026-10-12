@@ -339,6 +339,23 @@ body.auth-checking #loginGate{display:none!important}
 
 /* Login ekranındayken alt navigasyonu gizle */
 body:not(.is-approved) .bottomnav{display:none!important}
+
+/* Mobil çalışma alanı seçici */
+.mobile-ws{display:none;margin-bottom:14px;position:relative}
+@media(max-width:950px){
+  .mobile-ws{display:block}
+  .mobile-ws .ws-btn{
+    width:100%;
+    padding:11px 13px;
+    border-radius:12px;
+  }
+  .mobile-ws .ws-menu{
+    min-width:0;
+    left:0;
+    right:0;
+    width:100%;
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -401,6 +418,13 @@ body:not(.is-approved) .bottomnav{display:none!important}
 </aside>
 
 <main class="main">
+  <div class="mobile-ws" id="mobileWs">
+  <button id="wsSwitcherBtnM" class="ws-btn">
+    <span class="ws-label"><b id="wsCurrentNameM">—</b><span class="mini" id="wsCurrentTypeM"></span></span>
+    <span class="ws-arrow">▾</span>
+  </button>
+  <div id="wsMenuM" class="ws-menu" style="display:none"></div>
+  </div>
  <header class="top">
   <div>
    <div class="eyebrow" id="todayLabel">İŞ GÜNÜNÜ YÖNET</div>
@@ -641,7 +665,11 @@ body:not(.is-approved) .bottomnav{display:none!important}
  <button data-view="kanban">▦<span>Kanban</span></button>
  <button data-view="calendar">🗓<span>Takvim</span></button>
  <button data-view="timeline">≡<span>Zaman</span></button>
+ <button data-view="depgraph">⇄<span>Bağlılık</span></button>
  <button data-view="reports">▤<span>Rapor</span></button>
+ <button data-view="templates">▧<span>Şablon</span></button>
+ <button data-view="archive">▣<span>Arşiv</span></button>
+ <button data-view="history">↺<span>Geçmiş</span></button>
  <button data-view="settings">⚙<span>Ayarlar</span><span class="nav-badge" id="settingsBadgeM" style="display:none"></span></button>
 </nav>
 
@@ -894,18 +922,32 @@ function canManageWs(){const w=activeWs();return w&&(w.role==='owner'||w.role===
 
 function renderWsSwitcher(){
   const w=activeWs();
-  $('wsCurrentName').textContent=w?w.name:'—';
-  $('wsCurrentType').textContent=w?((w.type==='personal'?'Kişisel':'Ekip')+' · '+roleLabel(w.role)):'—';
+  const name = w?w.name:'—';
+  const type = w?((w.type==='personal'?'Kişisel':'Ekip')+' · '+roleLabel(w.role)):'—';
+  const n1=$('wsCurrentName'); if(n1) n1.textContent=name;
+  const t1=$('wsCurrentType'); if(t1) t1.textContent=type;
+  const n2=$('wsCurrentNameM'); if(n2) n2.textContent=name;
+  const t2=$('wsCurrentTypeM'); if(t2) t2.textContent=type;
+}
+function buildWsMenuHtml(){
+  const inviteBadge=myInvitations.length?` <span class="ws-badge" style="background:var(--bad);color:#fff">${myInvitations.length} davet</span>`:'';
+  return workspaces.map(w=>`<button class="ws-item ${w.id===activeWorkspaceId?'active':''}" data-ws-switch="${w.id}"><span><b>${esc(w.name)}</b><span class="ws-badge ${w.type==='personal'?'personal':''}">${w.type==='personal'?'Kişisel':'Ekip'}</span><div class="mini ws-role">${roleLabel(w.role)}</div></span></button>`).join('')+
+  `<div class="ws-new"><button class="ws-item" id="wsNewTeam"><span><b>＋ Yeni ekip oluştur</b></span></button>${myInvitations.length?`<button class="ws-item" id="wsOpenInvitations"><span><b>📩 Bekleyen davetler${inviteBadge}</b></span></button>`:''}</div>`;
 }
 function openWsMenu(){
-  const menu=$('wsMenu');
-  const inviteBadge=myInvitations.length?` <span class="ws-badge" style="background:var(--bad);color:#fff">${myInvitations.length} davet</span>`:'';
-  menu.innerHTML=workspaces.map(w=>`<button class="ws-item ${w.id===activeWorkspaceId?'active':''}" data-ws-switch="${w.id}"><span><b>${esc(w.name)}</b><span class="ws-badge ${w.type==='personal'?'personal':''}">${w.type==='personal'?'Kişisel':'Ekip'}</span><div class="mini ws-role">${roleLabel(w.role)}</div></span></button>`).join('')+
-  `<div class="ws-new"><button class="ws-item" id="wsNewTeam"><span><b>＋ Yeni ekip oluştur</b></span></button>${myInvitations.length?`<button class="ws-item" id="wsOpenInvitations"><span><b>📩 Bekleyen davetler${inviteBadge}</b></span></button>`:''}</div>`;
-  menu.style.display='block';
+  const html=buildWsMenuHtml();
+  const m1=$('wsMenu'); if(m1){m1.innerHTML=html;m1.style.display='block'}
+  const m2=$('wsMenuM'); if(m2){m2.innerHTML=html;m2.style.display='block'}
 }
-function closeWsMenu(){const m=$('wsMenu');if(m)m.style.display='none'}
-function toggleWsMenu(){const m=$('wsMenu');if(m.style.display==='block')closeWsMenu();else openWsMenu()}
+function closeWsMenu(){
+  const m1=$('wsMenu'); if(m1)m1.style.display='none';
+  const m2=$('wsMenuM'); if(m2)m2.style.display='none';
+}
+function toggleWsMenu(){
+  const m1=$('wsMenu'), m2=$('wsMenuM');
+  const isOpen = (m1&&m1.style.display==='block') || (m2&&m2.style.display==='block');
+  if(isOpen)closeWsMenu(); else openWsMenu();
+}
 
 async function switchWorkspace(id){
   if(id===activeWorkspaceId)return;
@@ -1725,6 +1767,8 @@ function bind(){
   $('verify2FA').onclick=verify2FA;
   $('focusNextBtn').onclick=()=>{focusIndex++;renderFocus()};
   $('wsSwitcherBtn').onclick=(e)=>{e.stopPropagation();toggleWsMenu()};
+  const wsBtnM=$('wsSwitcherBtnM');
+  if(wsBtnM) wsBtnM.onclick=(e)=>{e.stopPropagation();toggleWsMenu()};
   $('profModalSave').onclick=saveProfileFromModal;
   $('profileSaveBtn').onclick=saveProfileFromSettings;
 
