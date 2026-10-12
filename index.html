@@ -225,7 +225,6 @@ html.density-compact .tasktitle{font-size:13px}
   .reportgrid{grid-template-columns:repeat(3,1fr)}
 }
 
-/* ===================== MOBİL / RESPONSIVE ===================== */
 @media(max-width:1100px){.kanban{grid-template-columns:repeat(4,minmax(210px,1fr))}}
 
 @media(max-width:950px){
@@ -263,7 +262,6 @@ html.density-compact .tasktitle{font-size:13px}
   .focustimer{font-size:44px}
   .ws-menu{min-width:0;left:0;right:auto;width:min(85vw,320px)}
 
-  /* Alt navigasyon: yatay kaydırılabilir, güvenli alan destekli */
   .bottomnav{
     display:flex;
     overflow-x:auto;
@@ -301,17 +299,59 @@ html.density-compact .tasktitle{font-size:13px}
   .taskbuttons{grid-column:3;flex-wrap:wrap}
 }
 
-/* Çentikli telefonlar için güvenli alan */
 @supports (padding:max(0px)){
   .bottomnav{padding-bottom:max(8px,env(safe-area-inset-bottom))}
   .main{padding-bottom:max(96px,calc(96px + env(safe-area-inset-bottom)))}
 }
 
-/* PWA kurulum çubuğu */
 #pwaBar{animation:pwaSlide .35s ease}
 @keyframes pwaSlide{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* ===================== AUTH ===================== */
+/* Atanan kişi chip seçici */
+.assignee-picker{
+  display:flex;flex-wrap:wrap;gap:6px;
+  padding:8px;border:1px solid var(--line);border-radius:9px;
+  background:var(--panel);min-height:44px;align-items:flex-start;
+}
+.assignee-picker:empty::before{
+  content:'Çalışma alanında üye bulunamadı';
+  color:var(--muted);font-size:12px;padding:4px 6px;
+}
+.assignee-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:99px;
+  background:var(--bg);border:1px solid var(--line);
+  cursor:pointer;font-size:12px;user-select:none;
+  transition:background .15s, border-color .15s;
+}
+.assignee-chip:hover{border-color:var(--accent)}
+.assignee-chip.on{
+  background:var(--accent2);border-color:var(--accent);
+  color:var(--accent);font-weight:700;
+}
+.assignee-chip input{display:none}
+.assignee-chip::before{
+  content:'○';font-size:11px;opacity:.5;
+}
+.assignee-chip.on::before{content:'●';opacity:1}
+
+/* Mobil çalışma alanı seçici */
+.mobile-ws{display:none;margin-bottom:14px;position:relative}
+@media(max-width:950px){
+  .mobile-ws{display:block}
+  .mobile-ws .ws-btn{
+    width:100%;
+    padding:11px 13px;
+    border-radius:12px;
+  }
+  .mobile-ws .ws-menu{
+    min-width:0;
+    left:0;
+    right:0;
+    width:100%;
+  }
+}
+
 #app{display:none!important}
 body.is-approved #app{display:grid!important}
 #authLoading{display:none}
@@ -337,25 +377,7 @@ body.auth-checking #loginGate{display:none!important}
 .gatefooter button{background:transparent;border:0;color:var(--accent);padding:5px}
 .gate-theme{position:fixed;right:16px;top:16px}
 
-/* Login ekranındayken alt navigasyonu gizle */
 body:not(.is-approved) .bottomnav{display:none!important}
-
-/* Mobil çalışma alanı seçici */
-.mobile-ws{display:none;margin-bottom:14px;position:relative}
-@media(max-width:950px){
-  .mobile-ws{display:block}
-  .mobile-ws .ws-btn{
-    width:100%;
-    padding:11px 13px;
-    border-radius:12px;
-  }
-  .mobile-ws .ws-menu{
-    min-width:0;
-    left:0;
-    right:0;
-    width:100%;
-  }
-}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -418,13 +440,13 @@ body:not(.is-approved) .bottomnav{display:none!important}
 </aside>
 
 <main class="main">
-  <div class="mobile-ws" id="mobileWs">
+<div class="mobile-ws" id="mobileWs">
   <button id="wsSwitcherBtnM" class="ws-btn">
     <span class="ws-label"><b id="wsCurrentNameM">—</b><span class="mini" id="wsCurrentTypeM"></span></span>
     <span class="ws-arrow">▾</span>
   </button>
   <div id="wsMenuM" class="ws-menu" style="display:none"></div>
-  </div>
+</div>
  <header class="top">
   <div>
    <div class="eyebrow" id="todayLabel">İŞ GÜNÜNÜ YÖNET</div>
@@ -698,12 +720,12 @@ body:not(.is-approved) .bottomnav{display:none!important}
    <div class="formgrid">
     <div class="field full"><label>Görev adı *</label><input id="taskTitle" required maxlength="180"></div>
     <div class="field"><label>Kategori / süreç</label><input id="taskCategory" list="categoryOptions"><datalist id="categoryOptions"></datalist></div>
-    <div class="field"><label>Atanan kişi</label><input id="taskAssignee" list="assigneeOptions" placeholder="Örn. Ayşe Yılmaz"><datalist id="assigneeOptions"></datalist></div>
     <div class="field"><label>Öncelik</label><select id="taskPriority"><option value="high">Yüksek</option><option value="medium" selected>Normal</option><option value="low">Düşük</option></select></div>
+    <div class="field full"><label>Atanan kişiler</label><div id="taskAssignees" class="assignee-picker"></div></div>
     <div class="field"><label>Durum</label><select id="taskStatus"><option value="todo">Yapılacak</option><option value="doing">Devam ediyor</option><option value="blocked">Engellendi</option><option value="done">Tamamlandı</option></select></div>
+    <div class="field"><label>Tekrarlama</label><select id="taskRepeat"><option value="none">Tekrarlama yok</option><option value="daily">Her gün</option><option value="weekdays">Hafta içi her gün</option><option value="weekly">Her hafta</option><option value="monthly">Her ay</option></select></div>
     <div class="field"><label>Başlangıç tarihi</label><input id="taskStart" type="date"></div>
     <div class="field"><label>Son tarih</label><input id="taskDue" type="date"></div>
-    <div class="field"><label>Tekrarlama</label><select id="taskRepeat"><option value="none">Tekrarlama yok</option><option value="daily">Her gün</option><option value="weekdays">Hafta içi her gün</option><option value="weekly">Her hafta</option><option value="monthly">Her ay</option></select></div>
     <div class="field full"><label>Etiketler (virgülle ayır)</label><input id="taskTags"></div>
     <div class="field full"><label>Bağımlı olduğu görevler</label><select id="taskDependencies" multiple size="3"></select></div>
     <div class="field full"><label>Açıklama</label><textarea id="taskDesc" rows="2"></textarea></div>
@@ -783,7 +805,7 @@ function loadPrefs(){try{const p=JSON.parse(localStorage.getItem(PREFS_KEY)||'{}
 function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify({theme:data.theme,density:data.settings?.density||'normal',lang:data.settings?.lang||'tr',activeWorkspaceId}))}catch(e){}}
 
 let data={tasks:[],templates:[],history:[],dailyNotes:{},trash:[],undoStack:[],archive:[],sessionLog:[],settings:{density:'normal',lang:'tr'},theme:'light'};
-let activeView='dashboard',calDate=new Date(),editingSubs=[],editingIssues=[],selectedTasks=new Set(),sb=null,sbUser=null,syncing=false,toastTimer=null,focusIndex=0,pomoTimer=null,pomoLeft=25*60,pomoMode='work',currentComments=[],currentFiles=[],myRole='user';
+let activeView='dashboard',calDate=new Date(),editingSubs=[],editingIssues=[],editingAssignees=[],selectedTasks=new Set(),sb=null,sbUser=null,syncing=false,toastTimer=null,focusIndex=0,pomoTimer=null,pomoLeft=25*60,pomoMode='work',currentComments=[],currentFiles=[],myRole='user';
 let activatingUserId=null;
 let workspaces=[];
 let activeWorkspaceId=null;
@@ -806,6 +828,17 @@ function memberDisplay(m){if(!m)return '';const n=[m.first_name,m.last_name].fil
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function subStatus(s){return s.status||(s.done?'done':'todo')}
 function issueActive(i){return !i.resolvedAt}
+function taskAssignees(t){
+  if(!t)return [];
+  if(Array.isArray(t.assignees))return t.assignees.filter(Boolean);
+  if(t.assignee)return [t.assignee];
+  return [];
+}
+function normTask(t){
+  if(!t)return t;
+  const a=taskAssignees(t);
+  return {...t,assignees:a,assignee:a[0]||''};
+}
 function fmtDate(d){if(!d)return 'Tarih yok';const x=new Date(d+'T12:00:00');return x.toLocaleDateString((data.settings?.lang||'tr')==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'short',year:'numeric'})}
 function isLate(t){return t.status!=='done'&&t.due&&t.due<today()}
 function dayDiff(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)}
@@ -909,7 +942,26 @@ async function ensurePersonalWorkspace(){
 async function loadWorkspaceMembers(){
   workspaceMembers=[];
   if(!activeWorkspaceId)return;
-  try{const {data:rows,error}=await sb.rpc('wt_member_emails',{ws:activeWorkspaceId});if(error)throw error;workspaceMembers=(rows||[]).map(r=>({user_id:r.user_id,role:r.role,email:r.email||'',first_name:r.first_name||'',last_name:r.last_name||'',phone:r.phone||''}))}catch(e){console.warn('Üyeler yüklenemedi',e)}
+  try{
+    const {data:rows,error}=await sb.rpc('wt_member_emails',{ws:activeWorkspaceId});
+    if(error)throw error;
+    workspaceMembers=(rows||[]).map(r=>({user_id:r.user_id,role:r.role,email:r.email||'',first_name:r.first_name||'',last_name:r.last_name||'',phone:r.phone||''}));
+  }catch(e){console.warn('Üyeler yüklenemedi',e)}
+  if(!workspaceMembers.length && sbUser){
+    const fn=currentProfile.first_name||'';
+    const ln=currentProfile.last_name||'';
+    const n=[fn,ln].filter(Boolean).join(' ').trim();
+    if(n||currentProfile.email){
+      workspaceMembers=[{
+        user_id:sbUser.id,
+        role:'owner',
+        email:currentProfile.email||sbUser.email||'',
+        first_name:fn,
+        last_name:ln,
+        phone:currentProfile.phone||''
+      }];
+    }
+  }
 }
 async function loadWorkspaceInvitations(){
   workspaceInvitations=[];
@@ -1101,7 +1153,8 @@ function badges(t){
   if((t.dependencies||[]).length)b.push('<span class="badge">⇄ '+(t.dependencies||[]).length+' bağımlı</span>');
   const subs=t.subtasks||[];if(subs.length)b.push('<span class="badge">☰ '+subs.filter(s=>subStatus(s)==='done').length+'/'+subs.length+'</span>');
   const activeIss=(t.issues||[]).filter(issueActive).length;if(activeIss>=3)b.push('<span class="badge red">⚠ '+activeIss+' problem</span>');
-  if(t.assignee)b.push('<span class="badge">👤 '+esc(t.assignee)+'</span>');
+  const _as=taskAssignees(t);
+  if(_as.length)b.push('<span class="badge">👤 '+_as.map(esc).join(', ')+'</span>');
   return b.length?'<div class="badges">'+b.join('')+'</div>':'';
 }
 function issueAge(i){if(!i.startDate)return '';const d=dayDiff(i.startDate,today());if(d<0)return '';return d===0?'bugün':d+' gün'}
@@ -1127,8 +1180,29 @@ function taskHTML(t){
 }
 function statusClass(t){return t.status==='done'?'green':t.status==='blocked'?'red':t.status==='doing'?'orange':''}
 function categories(){return [...new Set(data.tasks.filter(t=>!t.archived).map(t=>t.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'))}
-function assignees(){const fromTasks=[...new Set(data.tasks.filter(t=>!t.archived).map(t=>t.assignee).filter(Boolean))];const fromMembers=memberNames();return [...new Set([...fromTasks,...fromMembers])].sort((a,b)=>a.localeCompare(b,'tr'))}
+function assignees(){
+  const fromTasks=[...new Set(data.tasks.filter(t=>!t.archived).flatMap(taskAssignees))];
+  const fromMembers=memberNames();
+  return [...new Set([...fromTasks,...fromMembers])].sort((a,b)=>a.localeCompare(b,'tr'))
+}
 function renderTasks(list,el){if(!el)return;el.innerHTML=list.length?list.map(taskHTML).join(''):'<div class="empty">Burada gösterilecek görev yok.</div>'}
+
+function renderAssigneePicker(selected){
+  editingAssignees = Array.isArray(selected) ? [...selected] : [];
+  const box=$('taskAssignees');
+  if(!box)return;
+  const opts = memberNames();
+  const extra = editingAssignees.filter(n=>!opts.includes(n));
+  const all = [...opts, ...extra];
+  if(!all.length){
+    box.innerHTML='<div class="mini" style="padding:4px 6px">Çalışma alanında üye bulunamadı. Ayarlar → Çalışma Alanı Yönetimi\'nden üye ekleyebilirsin.</div>';
+    return;
+  }
+  box.innerHTML = all.map(n=>{
+    const on = editingAssignees.includes(n);
+    return `<label class="assignee-chip ${on?'on':''}"><input type="checkbox" data-assignee-chip="${esc(n)}" ${on?'checked':''}>${esc(n)}</label>`;
+  }).join('');
+}
 
 function renderDashboard(){
   const ts=data.tasks.filter(t=>!t.archived);
@@ -1149,13 +1223,13 @@ function renderDashboard(){
   $('activeIssueCount').textContent=issues.length;
   $('activeIssues').innerHTML=issues.length?issues.slice(0,8).map(i=>`<div class="quickrow"><div><b>${esc(i.taskTitle)}</b><div class="mini">${esc(i.type)} [${ISSUE_PRIORITY[i.priority||'medium']}] · ${issueAge(i)}<br>${esc(i.description)}</div></div><button data-edit="${i.taskId}">Aç</button></div>`).join(''):'<div class="empty">Aktif problem yok.</div>';
   const upcoming=ts.filter(t=>t.status!=='done'&&t.due).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5);
-  $('upcomingList').innerHTML=upcoming.length?upcoming.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${fmtDate(t.due)}${t.assignee?' · 👤 '+esc(t.assignee):''}</div></div><span class="pill ${isLate(t)?'red':t.due===today()?'orange':''}">${isLate(t)?'Gecikti':t.due===today()?'Bugün':dayDiff(today(),t.due)+' gün'}</span></div>`).join(''):'<div class="empty">Yaklaşan son tarih yok.</div>';
+  $('upcomingList').innerHTML=upcoming.length?upcoming.map(t=>{const _as=taskAssignees(t);return `<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${fmtDate(t.due)}${_as.length?' · 👤 '+_as.map(esc).join(', '):''}</div></div><span class="pill ${isLate(t)?'red':t.due===today()?'orange':''}">${isLate(t)?'Gecikti':t.due===today()?'Bugün':dayDiff(today(),t.due)+' gün'}</span></div>`}).join(''):'<div class="empty">Yaklaşan son tarih yok.</div>';
 }
 
 function renderAllTasks(){
   const q=$('searchTasks').value.toLocaleLowerCase('tr'),st=$('statusFilter').value,cat=$('categoryFilter').value,late=$('lateFilter').value,sort=$('sortTasks').value,asg=$('assigneeFilter').value;
-  let ts=data.tasks.filter(t=>!t.archived).filter(t=>(!q||[t.title,t.desc,t.category,t.blockReason,t.assignee].join(' ').toLocaleLowerCase('tr').includes(q))&&(!st||t.status===st)&&(!cat||t.category===cat)&&(!asg||t.assignee===asg)&&(!late||(late==='late'?isLate(t):late==='today'?t.status!=='done'&&t.due===today():!t.due)));
-  ts.sort((a,b)=>{if(sort==='due')return (a.due||'9999').localeCompare(b.due||'9999');if(sort==='created')return (b.createdAt||'').localeCompare(a.createdAt||'');if(sort==='assignee')return (a.assignee||'zz').localeCompare(b.assignee||'zz','tr');return ({high:0,medium:1,low:2}[a.priority]-({high:0,medium:1,low:2}[b.priority]))||((a.due||'9999').localeCompare(b.due||'9999'))});
+  let ts=data.tasks.filter(t=>!t.archived).filter(t=>(!q||[t.title,t.desc,t.category,t.blockReason,...taskAssignees(t)].join(' ').toLocaleLowerCase('tr').includes(q))&&(!st||t.status===st)&&(!cat||t.category===cat)&&(!asg||taskAssignees(t).includes(asg))&&(!late||(late==='late'?isLate(t):late==='today'?t.status!=='done'&&t.due===today():!t.due)));
+  ts.sort((a,b)=>{if(sort==='due')return (a.due||'9999').localeCompare(b.due||'9999');if(sort==='created')return (b.createdAt||'').localeCompare(a.createdAt||'');if(sort==='assignee')return (taskAssignees(a)[0]||'zz').localeCompare(taskAssignees(b)[0]||'zz','tr');return ({high:0,medium:1,low:2}[a.priority]-({high:0,medium:1,low:2}[b.priority]))||((a.due||'9999').localeCompare(b.due||'9999'))});
   renderTasks(ts,$('allTasks'));
   const cs=categories(),prev=$('categoryFilter').value;
   $('categoryFilter').innerHTML='<option value="">Tüm kategoriler</option>'+cs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
@@ -1171,7 +1245,7 @@ function renderKanban(){
   const cols=[['todo','Yapılacak'],['doing','Devam ediyor'],['blocked','Engellendi'],['done','Tamamlandı']];
   $('kanbanBoard').innerHTML=cols.map(([k,label])=>{
     const ts=data.tasks.filter(t=>!t.archived&&t.status===k);
-    return `<section class="kancol" data-drop-status="${k}"><div class="kanhead"><span>${S(k)}</span><span class="pill">${ts.length}</span></div>${ts.map(t=>`<article class="kanitem" draggable="true" data-drag-task="${t.id}" data-prio="${t.priority||'medium'}"><b>${esc(t.title)}</b>${t.assignee?`<div class="mini">👤 ${esc(t.assignee)}</div>`:''}<div class="taskmeta"><span>${P(t.priority)}</span><span>${fmtDate(t.due)}</span></div>${badges(t)}<div class="actions" style="margin-top:8px"><button data-edit="${t.id}">Aç</button></div></article>`).join('')||'<div class="empty">Görev yok</div>'}</section>`;
+    return `<section class="kancol" data-drop-status="${k}"><div class="kanhead"><span>${S(k)}</span><span class="pill">${ts.length}</span></div>${ts.map(t=>{const _as=taskAssignees(t);return `<article class="kanitem" draggable="true" data-drag-task="${t.id}" data-prio="${t.priority||'medium'}"><b>${esc(t.title)}</b>${_as.length?`<div class="mini">👤 ${_as.map(esc).join(', ')}</div>`:''}<div class="taskmeta"><span>${P(t.priority)}</span><span>${fmtDate(t.due)}</span></div>${badges(t)}<div class="actions" style="margin-top:8px"><button data-edit="${t.id}">Aç</button></div></article>`}).join('')||'<div class="empty">Görev yok</div>'}</section>`;
   }).join('');
 }
 
@@ -1245,7 +1319,7 @@ function renderDepGraph(){
 
 function renderReports(){
   const from=$('reportFrom').value,to=$('reportTo').value,asg=$('reportAssignee').value;
-  const ts=data.tasks.filter(t=>!t.archived).filter(t=>(!from||(t.completedAt||t.createdAt||'').slice(0,10)>=from)&&(!to||(t.completedAt||t.createdAt||'').slice(0,10)<=to)&&(!asg||t.assignee===asg));
+  const ts=data.tasks.filter(t=>!t.archived).filter(t=>(!from||(t.completedAt||t.createdAt||'').slice(0,10)>=from)&&(!to||(t.completedAt||t.createdAt||'').slice(0,10)<=to)&&(!asg||taskAssignees(t).includes(asg)));
   const done=ts.filter(t=>t.status==='done').length,late=ts.filter(isLate).length;
   const blocked=ts.filter(t=>t.status==='blocked'||(t.blockReason&&t.status!=='done')||(t.issues||[]).some(issueActive));
   $('reportCards').innerHTML=[['Toplam görev',ts.length],['Tamamlanan',done],['Tamamlanma oranı',ts.length?Math.round(done/ts.length*100)+'%':'0%'],['Geciken',late],['Engellenen / problemli',blocked.length],['Aktif problem',ts.reduce((n,t)=>n+(t.issues||[]).filter(issueActive).length,0)]].map(x=>`<div class="reportbox"><span class="muted">${x[0]}</span><strong>${x[1]}</strong></div>`).join('');
@@ -1253,7 +1327,17 @@ function renderReports(){
   $('blockedReport').innerHTML=blocked.length?blocked.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${esc(t.blockReason||'Engellenmiş olarak işaretlendi')}</div></div><button data-edit="${t.id}">Aç</button></div>`).join(''):'<div class="empty">Engellenen görev yok.</div>';
   const pending=ts.filter(t=>t.status==='doing'&&t.updatedAt&&dayDiff(t.updatedAt.slice(0,10),today())>=7);
   $('pendingReport').innerHTML=pending.length?pending.map(t=>`<div class="quickrow"><div><b>${esc(t.title)}</b><div class="mini">${dayDiff(t.updatedAt.slice(0,10),today())} gündür "Devam ediyor" · Son güncelleme: ${fmtDate(t.updatedAt.slice(0,10))}</div></div><button data-edit="${t.id}">Aç</button></div>`).join(''):'<div class="empty">Beklemede kalan iş yok.</div>';
-  const amap={};ts.forEach(t=>{const a=t.assignee||'(Atanmamış)';(amap[a]=amap[a]||{total:0,done:0,late:0}).total++;if(t.status==='done')amap[a].done++;if(isLate(t))amap[a].late++});
+  const amap={};
+  ts.forEach(t=>{
+    const list=taskAssignees(t);
+    const keys=list.length?list:['(Atanmamış)'];
+    keys.forEach(a=>{
+      const s=amap[a]=amap[a]||{total:0,done:0,late:0};
+      s.total++;
+      if(t.status==='done')s.done++;
+      if(isLate(t))s.late++;
+    });
+  });
   const akeys=Object.keys(amap).sort();
   $('assigneeReport').innerHTML=akeys.length?akeys.map(a=>{const s=amap[a];return `<div class="quickrow"><div><b>${esc(a)}</b><div class="mini">${s.total} görev · ${s.done} tamamlandı · ${s.late} geciken</div></div><span class="pill">${s.total?Math.round(s.done/s.total*100):0}%</span></div>`}).join(''):'<div class="empty">Kayıt yok.</div>';
   const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toLocaleDateString('sv-SE');const n=data.history.filter(h=>h.at.slice(0,10)===ds&&h.action.includes('tamam')).length;days.push({label:d.toLocaleDateString('tr-TR',{weekday:'short',day:'2-digit'}),n})}
@@ -1331,13 +1415,12 @@ function openTask(id=null,defaults={}){
   $('deleteTaskBtn').style.display=t?'inline-block':'none';
   $('taskTitle').value=t?.title||defaults.title||'';
   $('taskCategory').value=t?.category||defaults.category||'';
-  $('taskAssignee').value=t?.assignee||defaults.assignee||'';
   $('taskPriority').value=t?.priority||defaults.priority||'medium';
   $('taskStatus').value=t?.status||'todo';
   $('taskStart').value=t?.startDate||defaults.startDate||'';
   $('taskDue').value=t?.due||defaults.due||'';
   $('taskTags').value=(t?.tags||defaults.tags||[]).join(', ');
-  $('assigneeOptions').innerHTML=assignees().map(n=>`<option value="${esc(n)}">`).join('');
+  renderAssigneePicker(t?taskAssignees(t):(defaults.assignees||(defaults.assignee?[defaults.assignee]:[])));
   $('taskDependencies').innerHTML=data.tasks.filter(x=>x.id!==(t?.id||'')).map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join('');
   [...$('taskDependencies').options].forEach(o=>o.selected=(t?.dependencies||defaults.dependencies||[]).includes(o.value));
   $('taskRepeat').value=t?.repeat||'none';
@@ -1465,7 +1548,7 @@ function completeAllSubs(taskId){
 }
 
 function exportCSV(){
-  const rows=[['Görev','Kategori','Atanan','Etiketler','Öncelik','Durum','Başlangıç','Son tarih','Tekrarlama','Alt görevler','Engel','Problemler','Açıklama'],...data.tasks.filter(t=>!t.archived).map(t=>[t.title,t.category||'',t.assignee||'',(t.tags||[]).join(', '),P(t.priority),S(t.status),t.startDate||'',t.due||'',t.repeat||'none',(t.subtasks||[]).map(s=>`[${S(subStatus(s))}] ${s.title}`).join(' | '),t.blockReason||'',(t.issues||[]).map(i=>`${i.startDate} ${i.type} [${ISSUE_PRIORITY[i.priority||'medium']}]: ${i.description} ${i.resolvedAt?'(Çözüldü: '+i.resolvedAt.slice(0,10)+')':'(Aktif)'}${i.resolutionNote?' — '+i.resolutionNote:''}`).join(' | '),t.desc||''])];
+  const rows=[['Görev','Kategori','Atanan','Etiketler','Öncelik','Durum','Başlangıç','Son tarih','Tekrarlama','Alt görevler','Engel','Problemler','Açıklama'],...data.tasks.filter(t=>!t.archived).map(t=>[t.title,t.category||'',taskAssignees(t).join(', '),(t.tags||[]).join(', '),P(t.priority),S(t.status),t.startDate||'',t.due||'',t.repeat||'none',(t.subtasks||[]).map(s=>`[${S(subStatus(s))}] ${s.title}`).join(' | '),t.blockReason||'',(t.issues||[]).map(i=>`${i.startDate} ${i.type} [${ISSUE_PRIORITY[i.priority||'medium']}]: ${i.description} ${i.resolvedAt?'(Çözüldü: '+i.resolvedAt.slice(0,10)+')':'(Aktif)'}${i.resolutionNote?' — '+i.resolutionNote:''}`).join(' | '),t.desc||''])];
   const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
   download(csv,'is-takip-gorevleri-'+today()+'.csv','text/csv;charset=utf-8');
 }
@@ -1478,7 +1561,7 @@ function loadJSON(file){
       if(!Array.isArray(x.tasks))throw Error('Görev listesi yok');
       x.trash=Array.isArray(x.trash)?x.trash:[];x.undoStack=Array.isArray(x.undoStack)?x.undoStack:[];x.archive=Array.isArray(x.archive)?x.archive:[];x.sessionLog=Array.isArray(x.sessionLog)?x.sessionLog:[];
       x.settings=x.settings||{density:'normal',lang:'tr'};
-      x.tasks=x.tasks.map(t=>({...t,tags:Array.isArray(t.tags)?t.tags:[],dependencies:Array.isArray(t.dependencies)?t.dependencies:[],issues:Array.isArray(t.issues)?t.issues:[],subtasks:Array.isArray(t.subtasks)?t.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}));
+      x.tasks=x.tasks.map(t=>{const n=normTask(t);return {...n,tags:Array.isArray(n.tags)?n.tags:[],dependencies:Array.isArray(n.dependencies)?n.dependencies:[],issues:Array.isArray(n.issues)?n.issues:[],subtasks:Array.isArray(n.subtasks)?n.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}});
       if(!confirm('Mevcut kayıtların yerine yedek yüklensin mi?'))return;
       const localPrefs=loadPrefs();
       data={...data,...x};data.theme=localPrefs.theme;data.settings={density:localPrefs.density,lang:localPrefs.lang};
@@ -1705,7 +1788,7 @@ async function pullRemote(){
       const remote=row.data;
       ['tasks','templates','history','trash','undoStack','archive','sessionLog'].forEach(k=>{if(!Array.isArray(remote[k]))remote[k]=[]});
       remote.settings=remote.settings||{density:'normal',lang:'tr'};
-      remote.tasks=remote.tasks.map(t=>({...t,tags:Array.isArray(t.tags)?t.tags:[],dependencies:Array.isArray(t.dependencies)?t.dependencies:[],issues:Array.isArray(t.issues)?t.issues:[],subtasks:Array.isArray(t.subtasks)?t.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}));
+      remote.tasks=remote.tasks.map(t=>{const n=normTask(t);return {...n,tags:Array.isArray(n.tags)?n.tags:[],dependencies:Array.isArray(n.dependencies)?n.dependencies:[],issues:Array.isArray(n.issues)?n.issues:[],subtasks:Array.isArray(n.subtasks)?n.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}});
       data=mergeData(data,remote);
     }else{
       const ws=activeWs();
@@ -1776,7 +1859,7 @@ function bind(){
     e.preventDefault();
     const id=$('taskId').value,t=data.tasks.find(x=>x.id===id),status=$('taskStatus').value;
     const subtasks=editingSubs.map(s=>({...s,done:subStatus(s)==='done'}));
-    const obj={...(t||{}),id:id||uid(),title:$('taskTitle').value.trim(),category:$('taskCategory').value.trim(),assignee:$('taskAssignee').value.trim(),priority:$('taskPriority').value,status,startDate:$('taskStart').value,due:$('taskDue').value,tags:[...new Set($('taskTags').value.split(',').map(x=>x.trim()).filter(Boolean))],dependencies:selectedValues($('taskDependencies')),issues:editingIssues.filter(i=>i.startDate&&i.description.trim()).map(i=>({...i})),repeat:$('taskRepeat').value,desc:$('taskDesc').value.trim(),blockReason:$('taskBlockReason').value.trim(),subtasks,createdAt:t?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+    const obj={...(t||{}),id:id||uid(),title:$('taskTitle').value.trim(),category:$('taskCategory').value.trim(),assignee:editingAssignees[0]||'',assignees:[...editingAssignees],priority:$('taskPriority').value,status,startDate:$('taskStart').value,due:$('taskDue').value,tags:[...new Set($('taskTags').value.split(',').map(x=>x.trim()).filter(Boolean))],dependencies:selectedValues($('taskDependencies')),issues:editingIssues.filter(i=>i.startDate&&i.description.trim()).map(i=>({...i})),repeat:$('taskRepeat').value,desc:$('taskDesc').value.trim(),blockReason:$('taskBlockReason').value.trim(),subtasks,createdAt:t?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
     if(obj.status==='todo'&&obj.subtasks.some(s=>subStatus(s)!=='todo'))obj.status='doing';
     if(obj.status==='done'){obj.completedAt=t?.completedAt||new Date().toISOString();obj.subtasks=obj.subtasks.map(s=>({...s,done:true,status:'done'}))}else obj.completedAt=null;
     saveTask(obj,t?'Görev güncellendi':'Görev oluşturuldu');
@@ -1852,7 +1935,7 @@ function bind(){
     if(e.target.closest('#wsLeaveBtn')){leaveActiveTeam();return}
     const rm=e.target.closest('[data-wsm-remove]');
     if(rm){removeMember(rm.dataset.wsmRemove);return}
-    if(!e.target.closest('.ws-switcher'))closeWsMenu();
+    if(!e.target.closest('.ws-switcher') && !e.target.closest('.mobile-ws'))closeWsMenu();
   });
 
   document.body.addEventListener('keydown',e=>{
@@ -1871,6 +1954,13 @@ function bind(){
       const t=data.tasks.find(x=>x.id===taskId);if(t){const i=(t.issues||[]).find(x=>x.id===issueId);if(i){i.resolvedAt=el.checked?new Date().toISOString():null;t.updatedAt=new Date().toISOString();log(el.checked?'Problem çözüldü':'Problem yeniden açıldı',t,i.description||'');persist();render()}}
     }
     if(el.dataset.wsmRole){changeMemberRole(el.dataset.wsmRole,el.value)}
+    if(el.dataset.assigneeChip!==undefined){
+      const n=el.dataset.assigneeChip;
+      if(el.checked){ if(!editingAssignees.includes(n)) editingAssignees.push(n); }
+      else editingAssignees = editingAssignees.filter(x=>x!==n);
+      const chip=el.closest('.assignee-chip');
+      if(chip)chip.classList.toggle('on',el.checked);
+    }
   });
   document.body.addEventListener('input',e=>{
     const el=e.target;
@@ -1977,19 +2067,53 @@ async function init(){
       try{
         const {data:sessionData,error:sessionError}=await sb.auth.getSession();
         if(sessionError)throw sessionError;
-        if(sessionData.session?.user){
+        let sess = sessionData.session;
+        if(!sess?.user){
+          try{
+            const {data:refreshed}=await sb.auth.refreshSession();
+            if(refreshed?.session?.user) sess = refreshed.session;
+          }catch(e){console.warn('Refresh başarısız:',e)}
+        }
+        if(sess?.user){
           if(!localStorage.getItem(SESSION_STARTED_KEY))localStorage.setItem(SESSION_STARTED_KEY,String(Date.now()));
           if(await enforceSessionLimit()){
-            const user=sessionData.session.user;
-            const check=await checkApproval(user);
-            if(check.ok){await activateApprovedUser(user)}
-            else{setApprovedUI(null);await sb.auth.signOut().catch(()=>{});localStorage.removeItem(SESSION_STARTED_KEY);gateMessage(check.status==='pending'?'Kayıt talebin onay bekliyor.':'Erişim izni yok.')}
+            const user=sess.user;
+            try{
+              const check=await checkApproval(user);
+              if(check.ok){await activateApprovedUser(user)}
+              else{
+                if(check.status==='rejected'||check.status==='missing'){
+                  setApprovedUI(null);await sb.auth.signOut().catch(()=>{});localStorage.removeItem(SESSION_STARTED_KEY);
+                  gateMessage(check.status==='rejected'?'Kayıt talebin reddedilmiş.':'Erişim izni yok.');
+                }else{
+                  gateMessage('Kayıt talebin onay bekliyor.');
+                }
+              }
+            }catch(e){
+              console.warn('Approval check hatası (ağ olabilir):',e);
+              gateMessage('Bağlantı kurulamadı, tekrar denenecek…');
+            }
           }
         }
       }catch(e){gateMessage('Oturum kontrol edilemedi: '+e.message)}
       sb.auth.onAuthStateChange((event,session)=>{
-        if(event==='SIGNED_OUT'){localStorage.removeItem(SESSION_STARTED_KEY);sbUser=null;approvedUserId=null;setApprovedUI(null)}
-        else if(event==='SIGNED_IN'&&session){if(!localStorage.getItem(SESSION_STARTED_KEY))localStorage.setItem(SESSION_STARTED_KEY,String(Date.now()))}
+        if(event==='SIGNED_OUT'){
+          setTimeout(async()=>{
+            try{
+              const {data:check}=await sb.auth.getSession();
+              if(!check.session){
+                localStorage.removeItem(SESSION_STARTED_KEY);
+                sbUser=null;approvedUserId=null;setApprovedUI(null);
+              }
+            }catch(e){}
+          },500);
+        }
+        else if(event==='SIGNED_IN'&&session){
+          if(!localStorage.getItem(SESSION_STARTED_KEY))localStorage.setItem(SESSION_STARTED_KEY,String(Date.now()));
+        }
+        else if(event==='TOKEN_REFRESHED'&&session){
+          console.log('Token yenilendi');
+        }
         else if(session?.user&&session.user.id!==approvedUserId){
           setTimeout(async()=>{
             try{
