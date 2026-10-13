@@ -114,7 +114,7 @@ label{display:block;color:var(--muted);font-size:12px;margin:0 0 5px}
 .modalhead h2{margin:0}
 .modalfoot{display:flex;justify-content:space-between;gap:8px;margin-top:18px;flex-wrap:wrap}
 .subtasks{display:grid;gap:7px}
-.subrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:8px;align-items:center}
+.subrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto auto auto;gap:8px;align-items:center}
 .subrow select{width:auto;padding:6px 8px;font-size:12px}
 .subrow input[type=date]{width:auto;padding:6px 8px;font-size:12px}
 .cardsubs{display:grid;gap:5px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
@@ -312,6 +312,9 @@ html.density-compact .tasktitle{font-size:13px}
   .focustimer{font-size:44px}
   .ws-menu{min-width:0;left:0;right:auto;width:min(85vw,320px)}
 
+  .subrow{grid-template-columns:auto minmax(0,1fr) 1fr 1fr auto auto auto}
+  .subrow input[type=date]{padding:8px 6px;font-size:12px}
+
   .bottomnav{
     display:flex;
     overflow-x:auto;
@@ -357,7 +360,6 @@ html.density-compact .tasktitle{font-size:13px}
 #pwaBar{animation:pwaSlide .35s ease}
 @keyframes pwaSlide{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* Atanan kişi chip seçici */
 .assignee-picker{
   display:flex;flex-wrap:wrap;gap:6px;
   padding:8px;border:1px solid var(--line);border-radius:9px;
@@ -385,7 +387,6 @@ html.density-compact .tasktitle{font-size:13px}
 }
 .assignee-chip.on::before{content:'●';opacity:1}
 
-/* Mobil çalışma alanı seçici */
 .mobile-ws{display:none;margin-bottom:14px;position:relative}
 @media(max-width:950px){
   .mobile-ws{display:block}
@@ -790,7 +791,12 @@ body:not(.is-approved) .bottomnav{display:none!important}
     <div class="field full">
      <label>Alt görevler</label>
      <div id="subtaskEditor" class="subtasks"></div>
-     <div style="display:flex;gap:8px;margin-top:8px"><input id="newSubtask" placeholder="Alt görev ekle…"><input id="newSubtaskDue" type="date" style="max-width:160px"><button type="button" id="addSubtask">Ekle</button></div>
+     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+       <input id="newSubtask" placeholder="Alt görev ekle…" style="flex:1;min-width:140px">
+       <input id="newSubtaskStart" type="date" style="max-width:150px" title="Başlangıç tarihi">
+       <input id="newSubtaskDue" type="date" style="max-width:150px" title="Bitiş tarihi">
+       <button type="button" id="addSubtask">Ekle</button>
+     </div>
     </div>
     <div class="field full" id="filesSection" style="display:none">
      <label>Dosyalar</label>
@@ -893,6 +899,7 @@ function normTask(t){
   return {...t,assignees:a,assignee:a[0]||''};
 }
 function fmtDate(d){if(!d)return 'Tarih yok';const x=new Date(d+'T12:00:00');return x.toLocaleDateString((data.settings?.lang||'tr')==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'short',year:'numeric'})}
+function fmtShort(d){if(!d)return '';const x=new Date(d+'T12:00:00');return x.toLocaleDateString((data.settings?.lang||'tr')==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'short'})}
 function isLate(t){return t.status!=='done'&&t.due&&t.due<today()}
 function dayDiff(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)}
 function notify(s){const el=$('toast');if(!el)return;el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800)}
@@ -1211,10 +1218,18 @@ function badges(t){
   return b.length?'<div class="badges">'+b.join('')+'</div>':'';
 }
 function issueAge(i){if(!i.startDate)return '';const d=dayDiff(i.startDate,today());if(d<0)return '';return d===0?'bugün':d+' gün'}
+function subDateRange(s){
+  const sd = s.startDate ? fmtShort(s.startDate) : '';
+  const dd = s.due ? fmtShort(s.due) : '';
+  if(sd && dd) return `${sd} → ${dd}`;
+  if(sd) return sd;
+  if(dd) return dd;
+  return '';
+}
 function taskHTML(t){
   const subs=(t.subtasks||[]).slice().sort((a,b)=>(a.order??0)-(b.order??0));
   const issues=t.issues||[];
-  const subsHtml=subs.length?`<div class="cardsubs">${subs.map((s,idx)=>{const ss=subStatus(s);return `<div class="cardsubrow"><select data-card-sub="${t.id}:${s.id}">${Object.keys(STATUS).map(k=>`<option value="${k}"${ss===k?' selected':''}>${S(k)}</option>`).join('')}</select><span class="cardsubtitle${ss==='done'?' done':''}">${esc(s.title)}${s.due?` · <span class="mini">${fmtDate(s.due)}</span>`:''}</span><button type="button" class="submove" data-submove="${t.id}:${s.id}:-1" title="Yukarı">▲</button><button type="button" class="submove" data-submove="${t.id}:${s.id}:1" title="Aşağı">▼</button><button type="button" class="submove danger" data-subdel-card="${t.id}:${s.id}" title="Sil">✕</button></div>`}).join('')}<div class="subquick"><input data-quicksub="${t.id}" placeholder="Yeni alt görev…" maxlength="120"><button type="button" data-quicksub-btn="${t.id}">Ekle</button>${subs.some(s=>subStatus(s)!=='done')?`<button type="button" class="ghost" data-subdoneall="${t.id}">Tümünü bitir</button>`:''}</div></div>`:'';
+  const subsHtml=subs.length?`<div class="cardsubs">${subs.map((s,idx)=>{const ss=subStatus(s);const range=subDateRange(s);return `<div class="cardsubrow"><select data-card-sub="${t.id}:${s.id}">${Object.keys(STATUS).map(k=>`<option value="${k}"${ss===k?' selected':''}>${S(k)}</option>`).join('')}</select><span class="cardsubtitle${ss==='done'?' done':''}">${esc(s.title)}${range?` · <span class="mini">${range}</span>`:''}</span><button type="button" class="submove" data-submove="${t.id}:${s.id}:-1" title="Yukarı">▲</button><button type="button" class="submove" data-submove="${t.id}:${s.id}:1" title="Aşağı">▼</button><button type="button" class="submove danger" data-subdel-card="${t.id}:${s.id}" title="Sil">✕</button></div>`}).join('')}<div class="subquick"><input data-quicksub="${t.id}" placeholder="Yeni alt görev…" maxlength="120"><button type="button" data-quicksub-btn="${t.id}">Ekle</button>${subs.some(s=>subStatus(s)!=='done')?`<button type="button" class="ghost" data-subdoneall="${t.id}">Tümünü bitir</button>`:''}</div></div>`:'';
   const issuesHtml=issues.length?`<div class="cardissues">${issues.map(i=>`<label class="cardissue${i.resolvedAt?' resolved':''}"><input type="checkbox" data-card-issue="${t.id}:${i.id}"${i.resolvedAt?' checked':''}><span class="iprio ${i.priority||'medium'}"></span><span>${esc(i.type||'Problem')}${i.priority?' ['+ISSUE_PRIORITY[i.priority]+']':''}: ${esc(i.description||'')}${i.startDate?' · '+issueAge(i):''}${i.resolvedAt?` · ✓ (${fmtDate((i.resolvedAt||'').slice(0,10))})`:''}${i.resolutionNote?' — '+esc(i.resolutionNote):''}</span></label>`).join('')}</div>`:'';
   return `<article class="task ${t.status==='done'?'done':''}" data-prio="${t.priority||'medium'}" draggable="false">
    <input class="check" type="checkbox" ${t.status==='done'?'checked':''} data-complete="${t.id}">
@@ -1322,14 +1337,12 @@ function renderGantt(){
   const showSubs = $('ganttShowSubs') ? $('ganttShowSubs').checked : true;
   const todayStr = today();
 
-  // Satırları hazırla: { kind:'task'|'sub', task, sub?, depth }
   const rows = [];
   const parents = data.tasks.filter(t=>!t.archived && (showDone || t.status!=='done'));
   parents.forEach(t=>{
     const hasParentDates = !!(t.startDate || t.due);
     const subList = Array.isArray(t.subtasks) ? t.subtasks : [];
     const datedSubs = subList.filter(s=>s && (s.startDate || s.due));
-    // Ana görev tarihi var VEYA alt görevlerinden tarihi olan varsa satır eklenir
     if (hasParentDates || (showSubs && datedSubs.length)){
       rows.push({ kind:'task', task:t, depth:0 });
       if (showSubs){
@@ -1343,7 +1356,6 @@ function renderGantt(){
     return;
   }
 
-  // Tarih aralığını hesapla
   let minD=null, maxD=null;
   rows.forEach(r=>{
     const s = r.kind==='sub' ? (r.sub.startDate||r.sub.due) : (r.task.startDate||r.task.due);
@@ -1353,7 +1365,6 @@ function renderGantt(){
       if(!maxD || d>maxD) maxD=d;
     }
   });
-  // Bugünü de aralığa dahil et
   if(!minD || todayStr<minD) minD=todayStr;
   if(!maxD || todayStr>maxD) maxD=todayStr;
 
@@ -1368,7 +1379,6 @@ function renderGantt(){
   const nameW=220;
   const todayIdx = days.findIndex(d=>d.toLocaleDateString('sv-SE')===todayStr);
 
-  // Ay gruplarını hesapla (üst başlık)
   const monthGroups=[];
   days.forEach((d,i)=>{
     const key=d.getFullYear()+'-'+d.getMonth();
@@ -1377,14 +1387,12 @@ function renderGantt(){
     else monthGroups.push({ key, count:1, start:i, year:d.getFullYear(), month:d.getMonth() });
   });
 
-  // Üst satır: ay başlıkları
   let monthRow = `<div class="gantthead" style="min-width:${nameW}px"></div>`;
   monthGroups.forEach(g=>{
     const label = new Date(g.year, g.month, 1).toLocaleDateString('tr-TR',{month:'long', year:'numeric'});
     monthRow += `<div class="gantthead monthhead" style="grid-column:span ${g.count}; min-width:${g.count*cellW}px">${label}</div>`;
   });
 
-  // Alt satır: günler
   let dayRow = `<div class="gantthead" style="min-width:${nameW}px">Görev</div>`;
   days.forEach(d=>{
     const ds = d.toLocaleDateString('sv-SE');
@@ -1394,14 +1402,12 @@ function renderGantt(){
     dayRow += `<div class="gantthead ${isToday?'today':''} ${weekend&&!isToday?'weekend':''}" style="min-width:${cellW}px" title="${d.toLocaleDateString('tr-TR',{weekday:'long',day:'2-digit',month:'long'})}">${d.getDate()}</div>`;
   });
 
-  // Gövde
   let body = '';
   rows.forEach(r=>{
     const isSub = r.kind==='sub';
     const s = isSub ? (r.sub.startDate||r.sub.due) : (r.task.startDate||r.task.due);
     const d = isSub ? (r.sub.due||r.sub.startDate) : (r.task.due||r.task.startDate);
 
-    // Ada: kırmızı sol border ile alt görev belirteci
     let nameCls = 'ganttname';
     let nameInner;
     if(isSub){
@@ -1419,13 +1425,15 @@ function renderGantt(){
       span = Math.max(1, eIdx-sIdx+1);
     }
 
-    // Bar class'ı
     let barCls = '';
     let barTitle = '';
     if(isSub){
       const ss = subStatus(r.sub);
       barCls = 'sub ' + (ss==='done'?'done':ss==='blocked'?'blocked':ss==='doing'?'doing':'todo');
-      barTitle = `${r.sub.title} — ${S(ss)}${r.sub.due?' · '+fmtDate(r.sub.due):''}`;
+      const sd = r.sub.startDate ? fmtDate(r.sub.startDate) : '';
+      const dd = r.sub.due ? fmtDate(r.sub.due) : '';
+      const range = (sd&&dd) ? ` · ${sd} → ${dd}` : (sd ? ` · ${sd}` : (dd ? ` · ${dd}` : ''));
+      barTitle = `${r.sub.title} — ${S(ss)}${range}`;
     }else{
       barCls = 'task-p-'+(r.task.priority||'medium');
       if(r.task.status==='done') barCls+=' done';
@@ -1433,7 +1441,6 @@ function renderGantt(){
       barTitle = `${r.task.title} — ${S(r.task.status)} · ${P(r.task.priority)}`;
     }
 
-    // Hücreleri gez
     for(let i=0;i<dayCount;i++){
       if(s && i===sIdx){
         body += `<div class="ganttcell" style="grid-column:span ${span}"><div class="ganttbar ${barCls}" title="${esc(barTitle)}"></div></div>`;
@@ -1450,7 +1457,6 @@ function renderGantt(){
 
   const gridCols = `grid-template-columns:${nameW}px repeat(${dayCount},${cellW}px)`;
 
-  // Bugün çizgisi (nameW + günün ortası)
   let todayLine='';
   let todayFlag='';
   if(todayIdx>=0){
@@ -1476,7 +1482,6 @@ function renderGantt(){
     </div>
   `;
 
-  // Şeride tıklanınca görevi aç
   const outer = $('ganttOuter');
   if(outer){
     outer.querySelectorAll('.ganttbar').forEach(bar=>{
@@ -1484,15 +1489,9 @@ function renderGantt(){
         const allBars = [...outer.querySelectorAll('.ganttbar')];
         const idx = allBars.indexOf(bar);
         if(idx<0) return;
-        // Aynı sırada rows dizisindeki göreve denk gelir
         const r = rows[idx];
         if(!r) return;
-        if(r.kind==='sub'){
-          openTask(r.task.id);
-          // Alt görev satırına odaklanma yok, sadece modal aç
-        }else{
-          openTask(r.task.id);
-        }
+        openTask(r.task.id);
       });
     });
   }
@@ -1635,7 +1634,7 @@ function openTask(id=null,defaults={}){
   $('taskBlockReason').value=t?.blockReason||'';
   editingIssues=(t?.issues||defaults.issues||[]).map(i=>({...i}));
   renderIssueEditor();
-  editingSubs=(t?.subtasks||defaults.subtasks||[]).map((s,idx)=>({...s,status:subStatus(s),done:subStatus(s)==='done',order:s.order??idx}));
+  editingSubs=(t?.subtasks||defaults.subtasks||[]).map((s,idx)=>({...s,startDate:s.startDate||'',due:s.due||'',status:subStatus(s),done:subStatus(s)==='done',order:s.order??idx}));
   renderSubEditor();
   $('filesSection').style.display=sbUser?'block':'none';
   $('commentsSection').style.display=sbUser?'block':'none';
@@ -1661,13 +1660,30 @@ function renderSubEditor(){
   $('subtaskEditor').innerHTML=editingSubs.length?editingSubs.map((s,i)=>{const ss=subStatus(s);return `<div class="subrow">
     <select data-editor-sub-index="${i}">${Object.keys(STATUS).map(k=>`<option value="${k}"${ss===k?' selected':''}>${S(k)}</option>`).join('')}</select>
     <input data-subtitle="${i}" value="${esc(s.title)}" placeholder="Alt görev">
-    <input type="date" data-subdue="${i}" value="${esc(s.due||'')}">
+    <input type="date" data-substart="${i}" value="${esc(s.startDate||'')}" title="Başlangıç">
+    <input type="date" data-subdue="${i}" value="${esc(s.due||'')}" title="Bitiş">
     <button type="button" data-submove-editor="${i}:-1" class="submove">▲</button>
     <button type="button" data-submove-editor="${i}:1" class="submove">▼</button>
     <button type="button" data-subdel="${i}">×</button>
   </div>`}).join(''):'<div class="mini">Alt görev eklenmedi.</div>';
 }
-function addSub(){const v=$('newSubtask').value.trim();if(!v)return;editingSubs.push({id:uid(),title:v,done:false,status:'todo',due:$('newSubtaskDue').value||'',order:editingSubs.length});$('newSubtask').value='';$('newSubtaskDue').value='';renderSubEditor()}
+function addSub(){
+  const v=$('newSubtask').value.trim();
+  if(!v)return;
+  editingSubs.push({
+    id:uid(),
+    title:v,
+    done:false,
+    status:'todo',
+    startDate:$('newSubtaskStart').value||'',
+    due:$('newSubtaskDue').value||'',
+    order:editingSubs.length
+  });
+  $('newSubtask').value='';
+  $('newSubtaskStart').value='';
+  $('newSubtaskDue').value='';
+  renderSubEditor();
+}
 function moveSub(list,idx,dir){const j=idx+dir;if(j<0||j>=list.length)return;const tmp=list[idx];list[idx]=list[j];list[j]=tmp;list.forEach((s,i)=>s.order=i)}
 
 function saveTask(t,action='Güncellendi'){snapshot(action);const old=data.tasks.find(x=>x.id===t.id);if(old){Object.assign(old,t,{updatedAt:new Date().toISOString()});log(action,old)}else{data.tasks.unshift(t);log('Görev oluşturuldu',t)}persist();render()}
@@ -1725,7 +1741,7 @@ function bulkArchive(){
 function quickAddSub(taskId,title){
   const t=data.tasks.find(x=>x.id===taskId);if(!t)return;
   if(!t.subtasks)t.subtasks=[];
-  t.subtasks.push({id:uid(),title,done:false,status:'todo',order:t.subtasks.length});
+  t.subtasks.push({id:uid(),title,done:false,status:'todo',startDate:'',due:'',order:t.subtasks.length});
   t.updatedAt=new Date().toISOString();
   snapshot('Alt görev eklendi');log('Alt görev eklendi',t,title);persist();render();
 }
@@ -1755,7 +1771,7 @@ function completeAllSubs(taskId){
 }
 
 function exportCSV(){
-  const rows=[['Görev','Kategori','Atanan','Etiketler','Öncelik','Durum','Başlangıç','Son tarih','Tekrarlama','Alt görevler','Engel','Problemler','Açıklama'],...data.tasks.filter(t=>!t.archived).map(t=>[t.title,t.category||'',taskAssignees(t).join(', '),(t.tags||[]).join(', '),P(t.priority),S(t.status),t.startDate||'',t.due||'',t.repeat||'none',(t.subtasks||[]).map(s=>`[${S(subStatus(s))}] ${s.title}`).join(' | '),t.blockReason||'',(t.issues||[]).map(i=>`${i.startDate} ${i.type} [${ISSUE_PRIORITY[i.priority||'medium']}]: ${i.description} ${i.resolvedAt?'(Çözüldü: '+i.resolvedAt.slice(0,10)+')':'(Aktif)'}${i.resolutionNote?' — '+i.resolutionNote:''}`).join(' | '),t.desc||''])];
+  const rows=[['Görev','Kategori','Atanan','Etiketler','Öncelik','Durum','Başlangıç','Son tarih','Tekrarlama','Alt görevler','Engel','Problemler','Açıklama'],...data.tasks.filter(t=>!t.archived).map(t=>[t.title,t.category||'',taskAssignees(t).join(', '),(t.tags||[]).join(', '),P(t.priority),S(t.status),t.startDate||'',t.due||'',t.repeat||'none',(t.subtasks||[]).map(s=>`[${S(subStatus(s))}] ${s.title}${(s.startDate||s.due)?' ('+(s.startDate||'')+' → '+(s.due||'')+')':''}`).join(' | '),t.blockReason||'',(t.issues||[]).map(i=>`${i.startDate} ${i.type} [${ISSUE_PRIORITY[i.priority||'medium']}]: ${i.description} ${i.resolvedAt?'(Çözüldü: '+i.resolvedAt.slice(0,10)+')':'(Aktif)'}${i.resolutionNote?' — '+i.resolutionNote:''}`).join(' | '),t.desc||''])];
   const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
   download(csv,'is-takip-gorevleri-'+today()+'.csv','text/csv;charset=utf-8');
 }
@@ -1768,7 +1784,7 @@ function loadJSON(file){
       if(!Array.isArray(x.tasks))throw Error('Görev listesi yok');
       x.trash=Array.isArray(x.trash)?x.trash:[];x.undoStack=Array.isArray(x.undoStack)?x.undoStack:[];x.archive=Array.isArray(x.archive)?x.archive:[];x.sessionLog=Array.isArray(x.sessionLog)?x.sessionLog:[];
       x.settings=x.settings||{density:'normal',lang:'tr'};
-      x.tasks=x.tasks.map(t=>{const n=normTask(t);return {...n,tags:Array.isArray(n.tags)?n.tags:[],dependencies:Array.isArray(n.dependencies)?n.dependencies:[],issues:Array.isArray(n.issues)?n.issues:[],subtasks:Array.isArray(n.subtasks)?n.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}});
+      x.tasks=x.tasks.map(t=>{const n=normTask(t);return {...n,tags:Array.isArray(n.tags)?n.tags:[],dependencies:Array.isArray(n.dependencies)?n.dependencies:[],issues:Array.isArray(n.issues)?n.issues:[],subtasks:Array.isArray(n.subtasks)?n.subtasks.map(s=>({...s,startDate:s.startDate||'',due:s.due||'',status:subStatus(s),done:subStatus(s)==='done'})):[]}});
       if(!confirm('Mevcut kayıtların yerine yedek yüklensin mi?'))return;
       const localPrefs=loadPrefs();
       data={...data,...x};data.theme=localPrefs.theme;data.settings={density:localPrefs.density,lang:localPrefs.lang};
@@ -1995,7 +2011,7 @@ async function pullRemote(){
       const remote=row.data;
       ['tasks','templates','history','trash','undoStack','archive','sessionLog'].forEach(k=>{if(!Array.isArray(remote[k]))remote[k]=[]});
       remote.settings=remote.settings||{density:'normal',lang:'tr'};
-      remote.tasks=remote.tasks.map(t=>{const n=normTask(t);return {...n,tags:Array.isArray(n.tags)?n.tags:[],dependencies:Array.isArray(n.dependencies)?n.dependencies:[],issues:Array.isArray(n.issues)?n.issues:[],subtasks:Array.isArray(n.subtasks)?n.subtasks.map(s=>({...s,status:subStatus(s),done:subStatus(s)==='done'})):[]}});
+      remote.tasks=remote.tasks.map(t=>{const n=normTask(t);return {...n,tags:Array.isArray(n.tags)?n.tags:[],dependencies:Array.isArray(n.dependencies)?n.dependencies:[],issues:Array.isArray(n.issues)?n.issues:[],subtasks:Array.isArray(n.subtasks)?n.subtasks.map(s=>({...s,startDate:s.startDate||'',due:s.due||'',status:subStatus(s),done:subStatus(s)==='done'})):[]}});
       data=mergeData(data,remote);
     }else{
       const ws=activeWs();
@@ -2173,6 +2189,7 @@ function bind(){
   document.body.addEventListener('input',e=>{
     const el=e.target;
     if(el.dataset.subtitle!==undefined)editingSubs[Number(el.dataset.subtitle)].title=el.value;
+    if(el.dataset.substart!==undefined)editingSubs[Number(el.dataset.substart)].startDate=el.value;
     if(el.dataset.subdue!==undefined)editingSubs[Number(el.dataset.subdue)].due=el.value;
     if(el.dataset.issueDate!==undefined)editingIssues[Number(el.dataset.issueDate)].startDate=el.value;
     if(el.dataset.issueType!==undefined)editingIssues[Number(el.dataset.issueType)].type=el.value;
