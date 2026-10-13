@@ -164,15 +164,64 @@ html.density-compact .tasktitle{font-size:13px}
 .bottomnav button.active{color:var(--accent)}
 .bottomnav .nav-badge{position:absolute;top:0;right:2px;background:var(--bad);color:#fff;font-size:9px;padding:0 5px;border-radius:99px;font-weight:800;min-width:16px;text-align:center}
 
-.ganttwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;padding:10px}
-.ganttgrid{display:grid;grid-auto-rows:auto;min-width:max-content;gap:2px;font-size:11px}
-.gantthead{padding:5px;text-align:center;color:var(--muted);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
-.ganttname{padding:7px 6px;border-bottom:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
-.ganttcell{border-bottom:1px solid var(--line);min-height:24px}
-.ganttbar{margin:5px 0;height:14px;border-radius:7px;background:var(--accent)}
-.ganttbar.done{background:var(--good)}
-.ganttbar.late{background:var(--bad)}
+/* ==================== GANTT / ZAMAN ÇİZELGESİ ==================== */
+.ganttwrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;padding:10px;position:relative}
+.gantt-legend{display:flex;flex-wrap:wrap;gap:14px;padding:6px 4px 12px;font-size:11px;color:var(--muted);align-items:center}
+.legend-item{display:inline-flex;align-items:center;gap:5px}
+.legend-color{display:inline-block;width:16px;height:10px;border-radius:3px;background:var(--accent)}
+.legend-color.p-high{background:var(--bad)}
+.legend-color.p-medium{background:var(--warn)}
+.legend-color.p-low{background:var(--good)}
+.legend-color.p-sub{background:var(--accent);opacity:.55;height:6px}
+.legend-today{display:inline-block;width:2px;height:14px;background:#e0384a}
+.gantt-outer{position:relative;overflow-x:auto}
+.ganttgrid{display:grid;grid-auto-rows:auto;min-width:max-content;gap:0;font-size:11px}
+.gantthead{padding:6px 4px;text-align:center;color:var(--muted);border-bottom:1px solid var(--line);background:var(--panel);font-weight:600}
+.gantthead.monthhead{
+  padding:4px 6px;
+  background:var(--accent2);
+  color:var(--accent);
+  font-weight:800;
+  font-size:11px;
+  border-right:1px solid var(--line);
+  text-align:left;
+  padding-left:8px;
+  text-transform:capitalize;
+}
+.gantthead.weekend{background:color-mix(in srgb,var(--line) 40%,transparent)}
+.gantthead.today{background:#e0384a22;color:#e0384a;font-weight:900;border-bottom:2px solid #e0384a}
+.ganttname{padding:7px 8px;border-bottom:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;background:var(--panel);border-right:1px solid var(--line);font-size:12px}
+.ganttname.subname{padding-left:24px;font-size:11px;color:var(--muted);font-style:italic}
+.submark{color:var(--accent);font-weight:800;margin-right:2px}
+.ganttcell{border-bottom:1px solid var(--line);border-right:1px dotted var(--line);min-height:26px;background:var(--panel)}
+.ganttcell.weekend{background:color-mix(in srgb,var(--line) 22%,var(--panel))}
+.ganttcell.today{background:#e0384a12}
+.ganttbar{margin:5px 0;height:16px;border-radius:5px;background:var(--accent);box-shadow:0 1px 3px #0002;cursor:pointer;transition:opacity .15s}
+.ganttbar:hover{opacity:.85}
+.ganttbar.task-p-high{background:var(--bad)}
+.ganttbar.task-p-medium{background:var(--warn)}
+.ganttbar.task-p-low{background:var(--good)}
+.ganttbar.done{opacity:.55;background-image:repeating-linear-gradient(45deg,transparent 0 6px,#ffffff33 6px 12px)}
+.ganttbar.late{border:2px solid #7a1620}
+.ganttbar.sub{height:10px;margin:9px 0;opacity:.75}
+.ganttbar.sub.done{opacity:.4}
+.ganttbar.sub.blocked{background:repeating-linear-gradient(45deg,var(--bad) 0 5px,#00000022 5px 10px)}
+.ganttbar.sub.doing{background:var(--accent)}
+.gantt-today-line{
+  position:absolute;top:0;bottom:0;width:2px;background:#e0384a;
+  pointer-events:none;z-index:2;
+  box-shadow:0 0 6px #e0384a99;
+}
+.gantt-today-flag{
+  position:absolute;top:-2px;transform:translateX(-50%);
+  background:#e0384a;color:#fff;font-size:9px;font-weight:800;
+  padding:2px 6px;border-radius:4px;white-space:nowrap;z-index:3;
+  pointer-events:none;
+}
 
+.gantt-empty{text-align:center;padding:30px;color:var(--muted)}
+
+/* ==================== DEP GRAPH ==================== */
 .depwrap{position:relative;min-height:420px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 .depnode{position:absolute;padding:8px 11px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:12px;max-width:180px;box-shadow:var(--shadow);cursor:pointer}
 .depnode.hl{border-color:var(--accent);background:var(--accent2)}
@@ -258,6 +307,7 @@ html.density-compact .tasktitle{font-size:13px}
   .reportgrid{grid-template-columns:1fr 1fr}
   .reportfilters{grid-template-columns:1fr}
   .ganttwrap{padding:6px}
+  .ganttname{max-width:160px;font-size:11px}
   .focuswrap{max-width:100%}
   .focustimer{font-size:44px}
   .ws-menu{min-width:0;left:0;right:auto;width:min(85vw,320px)}
@@ -545,7 +595,10 @@ body:not(.is-approved) .bottomnav{display:none!important}
  <section class="view" id="view-timeline">
   <div class="panel">
    <div class="panelhead"><h2>Zaman Çizelgesi</h2>
-    <div class="actions"><label class="checkline" style="margin:0"><input type="checkbox" id="ganttShowDone" checked> Tamamlananları göster</label></div>
+    <div class="actions">
+      <label class="checkline" style="margin:0"><input type="checkbox" id="ganttShowDone" checked> Tamamlananları göster</label>
+      <label class="checkline" style="margin:0"><input type="checkbox" id="ganttShowSubs" checked> Alt görevleri göster</label>
+    </div>
    </div>
    <div class="ganttwrap" id="ganttWrap"></div>
   </div>
@@ -1263,32 +1316,186 @@ function renderCalendar(){
   $('calendarGrid').innerHTML=html;
 }
 
+/* ==================== ZAMAN ÇİZELGESİ (GANTT) ==================== */
 function renderGantt(){
-  const showDone=$('ganttShowDone').checked;
-  const tasks=data.tasks.filter(t=>!t.archived&&(showDone||t.status!=='done')&&(t.startDate||t.due)).slice(0,60);
-  if(!tasks.length){$('ganttWrap').innerHTML='<div class="empty">Tarih aralığı olan görev yok.</div>';return}
-  let minD=null,maxD=null;
-  tasks.forEach(t=>{const s=t.startDate||t.due,d=t.due||t.startDate;if(!minD||s<minD)minD=s;if(!maxD||d>maxD)maxD=d});
-  const start=new Date(minD+'T12:00:00'),end=new Date(maxD+'T12:00:00');
-  const dayCount=Math.max(7,Math.min(90,Math.round((end-start)/86400000)+1));
-  const days=Array.from({length:dayCount},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);return d});
-  const cellW=26;
-  let head='<div class="gantthead" style="min-width:200px">Görev</div>';
-  days.forEach(d=>{head+=`<div class="gantthead" style="min-width:${cellW}px">${d.getDate()}</div>`});
-  let rows='';
-  tasks.forEach(t=>{
-    const s=t.startDate||t.due,d=t.due||t.startDate;
-    const sIdx=Math.max(0,Math.round((new Date(s+'T12:00:00')-start)/86400000));
-    const eIdx=Math.min(dayCount-1,Math.round((new Date(d+'T12:00:00')-start)/86400000));
-    const span=Math.max(1,eIdx-sIdx+1);
-    const cls=t.status==='done'?'done':isLate(t)?'late':'';
-    rows+=`<div class="ganttname">${esc(t.title)}</div>`;
-    for(let i=0;i<dayCount;i++){
-      if(i===sIdx){rows+=`<div class="ganttcell" style="grid-column:span ${span}"><div class="ganttbar ${cls}"></div></div>`;i+=span-1}
-      else{rows+=`<div class="ganttcell"></div>`}
+  const showDone = $('ganttShowDone').checked;
+  const showSubs = $('ganttShowSubs') ? $('ganttShowSubs').checked : true;
+  const todayStr = today();
+
+  // Satırları hazırla: { kind:'task'|'sub', task, sub?, depth }
+  const rows = [];
+  const parents = data.tasks.filter(t=>!t.archived && (showDone || t.status!=='done'));
+  parents.forEach(t=>{
+    const hasParentDates = !!(t.startDate || t.due);
+    const subList = Array.isArray(t.subtasks) ? t.subtasks : [];
+    const datedSubs = subList.filter(s=>s && (s.startDate || s.due));
+    // Ana görev tarihi var VEYA alt görevlerinden tarihi olan varsa satır eklenir
+    if (hasParentDates || (showSubs && datedSubs.length)){
+      rows.push({ kind:'task', task:t, depth:0 });
+      if (showSubs){
+        datedSubs.forEach(s=>rows.push({ kind:'sub', task:t, sub:s, depth:1 }));
+      }
     }
   });
-  $('ganttWrap').innerHTML=`<div class="ganttgrid" style="grid-template-columns:200px repeat(${dayCount},${cellW}px)">${head}${rows}</div>`;
+
+  if(!rows.length){
+    $('ganttWrap').innerHTML='<div class="gantt-empty">Tarih aralığı olan görev veya alt görev yok.</div>';
+    return;
+  }
+
+  // Tarih aralığını hesapla
+  let minD=null, maxD=null;
+  rows.forEach(r=>{
+    const s = r.kind==='sub' ? (r.sub.startDate||r.sub.due) : (r.task.startDate||r.task.due);
+    const d = r.kind==='sub' ? (r.sub.due||r.sub.startDate) : (r.task.due||r.task.startDate);
+    if(s){
+      if(!minD || s<minD) minD=s;
+      if(!maxD || d>maxD) maxD=d;
+    }
+  });
+  // Bugünü de aralığa dahil et
+  if(!minD || todayStr<minD) minD=todayStr;
+  if(!maxD || todayStr>maxD) maxD=todayStr;
+
+  const start = new Date(minD+'T12:00:00');
+  const end = new Date(maxD+'T12:00:00');
+  const dayCount = Math.max(7, Math.min(180, Math.round((end-start)/86400000)+1));
+
+  const days=[];
+  for(let i=0;i<dayCount;i++){ const d=new Date(start); d.setDate(d.getDate()+i); days.push(d); }
+
+  const cellW=30;
+  const nameW=220;
+  const todayIdx = days.findIndex(d=>d.toLocaleDateString('sv-SE')===todayStr);
+
+  // Ay gruplarını hesapla (üst başlık)
+  const monthGroups=[];
+  days.forEach((d,i)=>{
+    const key=d.getFullYear()+'-'+d.getMonth();
+    const last=monthGroups[monthGroups.length-1];
+    if(last && last.key===key) last.count++;
+    else monthGroups.push({ key, count:1, start:i, year:d.getFullYear(), month:d.getMonth() });
+  });
+
+  // Üst satır: ay başlıkları
+  let monthRow = `<div class="gantthead" style="min-width:${nameW}px"></div>`;
+  monthGroups.forEach(g=>{
+    const label = new Date(g.year, g.month, 1).toLocaleDateString('tr-TR',{month:'long', year:'numeric'});
+    monthRow += `<div class="gantthead monthhead" style="grid-column:span ${g.count}; min-width:${g.count*cellW}px">${label}</div>`;
+  });
+
+  // Alt satır: günler
+  let dayRow = `<div class="gantthead" style="min-width:${nameW}px">Görev</div>`;
+  days.forEach(d=>{
+    const ds = d.toLocaleDateString('sv-SE');
+    const isToday = ds===todayStr;
+    const wd = d.getDay();
+    const weekend = (wd===0 || wd===6);
+    dayRow += `<div class="gantthead ${isToday?'today':''} ${weekend&&!isToday?'weekend':''}" style="min-width:${cellW}px" title="${d.toLocaleDateString('tr-TR',{weekday:'long',day:'2-digit',month:'long'})}">${d.getDate()}</div>`;
+  });
+
+  // Gövde
+  let body = '';
+  rows.forEach(r=>{
+    const isSub = r.kind==='sub';
+    const s = isSub ? (r.sub.startDate||r.sub.due) : (r.task.startDate||r.task.due);
+    const d = isSub ? (r.sub.due||r.sub.startDate) : (r.task.due||r.task.startDate);
+
+    // Ada: kırmızı sol border ile alt görev belirteci
+    let nameCls = 'ganttname';
+    let nameInner;
+    if(isSub){
+      nameCls += ' subname';
+      nameInner = `<span class="submark">↳</span>${esc(r.sub.title)}`;
+    }else{
+      nameInner = esc(r.task.title);
+    }
+    body += `<div class="${nameCls}" title="${esc(isSub?r.sub.title:r.task.title)}">${nameInner}</div>`;
+
+    let sIdx=null,eIdx=null,span=0;
+    if(s){
+      sIdx = Math.max(0, Math.round((new Date(s+'T12:00:00')-start)/86400000));
+      eIdx = Math.min(dayCount-1, Math.round((new Date(d+'T12:00:00')-start)/86400000));
+      span = Math.max(1, eIdx-sIdx+1);
+    }
+
+    // Bar class'ı
+    let barCls = '';
+    let barTitle = '';
+    if(isSub){
+      const ss = subStatus(r.sub);
+      barCls = 'sub ' + (ss==='done'?'done':ss==='blocked'?'blocked':ss==='doing'?'doing':'todo');
+      barTitle = `${r.sub.title} — ${S(ss)}${r.sub.due?' · '+fmtDate(r.sub.due):''}`;
+    }else{
+      barCls = 'task-p-'+(r.task.priority||'medium');
+      if(r.task.status==='done') barCls+=' done';
+      if(isLate(r.task)) barCls+=' late';
+      barTitle = `${r.task.title} — ${S(r.task.status)} · ${P(r.task.priority)}`;
+    }
+
+    // Hücreleri gez
+    for(let i=0;i<dayCount;i++){
+      if(s && i===sIdx){
+        body += `<div class="ganttcell" style="grid-column:span ${span}"><div class="ganttbar ${barCls}" title="${esc(barTitle)}"></div></div>`;
+        i += span-1;
+      }else{
+        const ds = days[i].toLocaleDateString('sv-SE');
+        const isToday = ds===todayStr;
+        const wd = days[i].getDay();
+        const weekend = (wd===0 || wd===6);
+        body += `<div class="ganttcell ${isToday?'today':''} ${weekend&&!isToday?'weekend':''}"></div>`;
+      }
+    }
+  });
+
+  const gridCols = `grid-template-columns:${nameW}px repeat(${dayCount},${cellW}px)`;
+
+  // Bugün çizgisi (nameW + günün ortası)
+  let todayLine='';
+  let todayFlag='';
+  if(todayIdx>=0){
+    const leftPx = nameW + todayIdx*cellW + cellW/2;
+    todayLine = `<div class="gantt-today-line" style="left:${leftPx}px"></div>`;
+    const nowLabel = new Date().toLocaleString('tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    todayFlag = `<div class="gantt-today-flag" style="left:${leftPx}px; top:-18px">Bugün · ${nowLabel}</div>`;
+  }
+
+  $('ganttWrap').innerHTML = `
+    <div class="gantt-legend">
+      <span class="legend-item"><span class="legend-color p-high"></span> Yüksek öncelik</span>
+      <span class="legend-item"><span class="legend-color p-medium"></span> Normal</span>
+      <span class="legend-item"><span class="legend-color p-low"></span> Düşük</span>
+      <span class="legend-item"><span class="legend-color p-sub"></span> Alt görev</span>
+      <span class="legend-item"><span class="legend-today"></span> Bugün (${todayStr})</span>
+      <span class="legend-item" style="margin-left:auto; opacity:.7">Şeride tıklayarak görevi aç</span>
+    </div>
+    <div class="gantt-outer" id="ganttOuter">
+      <div class="ganttgrid" style="${gridCols}">${monthRow}${dayRow}${body}</div>
+      ${todayLine}
+      ${todayFlag}
+    </div>
+  `;
+
+  // Şeride tıklanınca görevi aç
+  const outer = $('ganttOuter');
+  if(outer){
+    outer.querySelectorAll('.ganttbar').forEach(bar=>{
+      bar.addEventListener('click',()=>{
+        const allBars = [...outer.querySelectorAll('.ganttbar')];
+        const idx = allBars.indexOf(bar);
+        if(idx<0) return;
+        // Aynı sırada rows dizisindeki göreve denk gelir
+        const r = rows[idx];
+        if(!r) return;
+        if(r.kind==='sub'){
+          openTask(r.task.id);
+          // Alt görev satırına odaklanma yok, sadece modal aç
+        }else{
+          openTask(r.task.id);
+        }
+      });
+    });
+  }
 }
 
 function renderDepGraph(){
@@ -1841,6 +2048,7 @@ function bind(){
   $('addSubtask').onclick=addSub;
   $('newSubtask').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addSub()}};
   $('ganttShowDone').onchange=renderGantt;
+  const gs=$('ganttShowSubs'); if(gs) gs.onchange=renderGantt;
   $('printReport').onclick=()=>window.print();
   $('checkReminders').onclick=checkReminders;
   $('showUndoList').onclick=()=>{$('undoList').innerHTML=(data.undoStack||[]).length?[...data.undoStack].reverse().map(x=>`<div class="quickrow"><div><b>${esc(x.label)}</b><div class="mini">${new Date(x.at).toLocaleString('tr-TR')}</div></div><button data-undo-to="${x.id}">Buraya dön</button></div>`).join(''):'<div class="empty">Kayıt yok.</div>';$('undoModal').classList.add('open')};
