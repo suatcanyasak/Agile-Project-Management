@@ -14,6 +14,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Agile PM">
 <meta name="mobile-web-app-capable" content="yes">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">  
 <script>
 try{
   var __p=JSON.parse(localStorage.getItem('work-tracker-prefs')||'{}');
@@ -1879,7 +1882,10 @@ async function authAction(kind){
   if(!sb){if(!await setupSb())return}
   const email=$('gateEmail').value.trim().toLowerCase(),password=$('gatePassword').value;
   if(!email||!password){gateMessage('E-posta ve şifreyi doldur.');return}
-  if(password.length<6){gateMessage('Şifre en az 6 karakter olmalı.');return}
+  if(password.length<8){gateMessage('Şifre en az 8 karakter olmalı.');return}
+  if(!/[A-Z]/.test(password)){gateMessage('Şifre en az 1 büyük harf içermeli.');return}
+  if(!/[a-z]/.test(password)){gateMessage('Şifre en az 1 küçük harf içermeli.');return}
+  if(!/[0-9]/.test(password)){gateMessage('Şifre en az 1 rakam içermeli.');return}
   $('gateSubmit').disabled=true;$('gateSubmit').textContent='Kontrol ediliyor…';$('gateStatus').classList.remove('show');
   try{
     if(kind==='signup'){
@@ -1916,7 +1922,12 @@ async function forgotPassword(){
   try{const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});if(error)throw error;notify('Şifre sıfırlama bağlantısı gönderildi.');logSession('Şifre sıfırlama istendi',email)}catch(e){notify('Hata: '+e.message)}
 }
 async function changePassword(){
-  const np=prompt('Yeni şifre (en az 6 karakter):');if(!np)return;if(np.length<6){notify('Şifre çok kısa.');return}
+  const np=prompt('Yeni şifre (en az 8 karakter, 1 büyük, 1 küçük, 1 rakam):');
+  if(!np)return;
+  if(np.length<8||!/[A-Z]/.test(np)||!/[a-z]/.test(np)||!/[0-9]/.test(np)){
+    notify('Şifre en az 8 karakter, 1 büyük, 1 küçük ve 1 rakam içermeli.');
+    return;
+  }
   try{const {error}=await sb.auth.updateUser({password:np});if(error)throw error;notify('Şifre güncellendi.');logSession('Şifre değiştirildi')}catch(e){notify('Hata: '+e.message)}
 }
 
@@ -1972,7 +1983,12 @@ async function listFiles(taskId){
 function renderFiles(){const el=$('filesList');if(!el)return;el.innerHTML=currentFiles.length?currentFiles.map(f=>`<div class="filerow"><span>📎 ${esc(f.name)}</span><span class="actions"><button data-dl-file="${esc(f.name)}">İndir</button><button class="danger" data-del-file="${esc(f.name)}">Sil</button></span></div>`).join(''):'<div class="mini">Dosya yok.</div>'}
 async function uploadFile(file){
   const taskId=$('taskId').value;if(!taskId)return;
-  try{const path=taskId+'/'+Date.now()+'_'+file.name;const {error}=await sb.storage.from('work-tracker-files').upload(path,file,{upsert:false});if(error)throw error;await listFiles(taskId);notify('Dosya yüklendi.')}catch(e){notify('Hata: '+e.message)}
+  const MAX=5*1024*1024;
+  if(file.size>MAX){notify('Dosya çok büyük (max 5 MB).');return}
+  const allowed=['image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml','application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation','text/plain','text/csv','application/zip','application/x-zip-compressed'];
+  if(!allowed.includes(file.type)){notify('Bu dosya türü desteklenmiyor: '+file.type);return}
+  const safeName=file.name.replace(/[^\w.\-]/g,'_').slice(0,100);
+  try{const path=taskId+'/'+Date.now()+'_'+safeName;const {error}=await sb.storage.from('work-tracker-files').upload(path,file,{upsert:false});if(error)throw error;await listFiles(taskId);notify('Dosya yüklendi.')}catch(e){notify('Hata: '+e.message)}
 }
 async function downloadFile(name){
   const taskId=$('taskId').value;
@@ -2357,6 +2373,8 @@ async function init(){
   finishAuth();
   setInterval(async()=>{if(sbUser)await enforceSessionLimit()},60000);
 }
+window.addEventListener('error',e=>{console.error('[Global Hata]',e.message,e.filename,e.lineno);});
+window.addEventListener('unhandledrejection',e=>{console.error('[Promise Hata]',e.reason);});      
 init();
 })();
 </script>
